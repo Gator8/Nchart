@@ -13,11 +13,11 @@ Warning: Gathering data like this involves HTTP calls to the Nest secure site.
 Prerequisites
 =============
 You will need a few things to get this to work:
-	  1. a web server
+    1. a web server
     2. a mySQL server
     3. PHP installed
-	  4. Python installed
-	  5. a Wunderground key
+    4. Python installed
+    5. a Wunderground key
     6. Flot charts
 
 
