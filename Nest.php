@@ -39,7 +39,6 @@ if (!empty($ini_array['wunderground_key'])) {
    $z_UV = $parsed_json->{'current_observation'}->{'UV'};
    $z_precip_today = $parsed_json->{'current_observation'}->{'precip_today_'.$pn_scale};
 }
-
 // fix path to python executable as well as path to py file
 $command = 'python nest.py --user ' .$ini_array["N_user"]. ' --password ' .$ini_array["N_pass"]. ' show';
 
@@ -54,6 +53,12 @@ if (!$ar_count) {
     $lresult = write_log("No elements means python command failed. TERMINATING.");
     exit;
 }
+
+// need to write out nest_raw_data.txt for gauges
+$nest_raw_data="LastData ". $z_wind_speed . " " . $z_wind_gust_speed . " " . $z_wind_degrees . " " . $z_temperature . " " . $z_relative_humidity . " " . $z_pressure . " " .$z_precip_today . "    " . $current_temperature. " " . $current_humidity. "                             " . $z_windchill. " " .$z_heat_index;
+$fn_name='/volume1/web/nest/nest_raw_data.txt';
+file_put_contents($fn_name,$nest_raw_data);
+
 foreach ($output as $var_s) {
      list($m_vars,$m_vals) = explode(':', $var_s);
      if ($m_vars=="\$timestamp") {
@@ -87,8 +92,6 @@ if (!$db_selected) {
 $query = sprintf("show tables from $db_name");
 $lresult = write_log("Table query: " . $query);
 $result = mysql_query($query);
-
-//echo $result;
 
 if (!$result) {
     echo "DB Error, could not list tables\n";
@@ -180,11 +183,10 @@ $i=0;
      }
 
      $tbl_vars = $tbl_vars.",z_temperature,z_relative_humidity,z_wind_dir,z_wind_degrees,z_wind_speed,z_wind_gust_speed,z_pressure,z_pressure_trend,z_dewpoint,z_heat_index,z_windchill,z_feelslike,z_visibility,z_UV,z_precip_today";
-     $tbl_vals = $tbl_vals.",'".$z_temperature."','".$z_relative_humidity."','".$z_wind_dir."','".$z_wind_degrees."','".$z_wind_speed."','".$z_wind_gust_speed."','".$z_pressure."','".$z_pressure_trend."','".$z_dewpoint."','".$z_heat_index."','".$z_windchill."','".$z_feelslike."','".$z_visibility."','".$z_UV."','".$z_precip_today."'";     
+     $tbl_vals = $tbl_vals.",'".$z_temperature."','".$z_relative_humidity."','".$z_wind_dir."','".$z_wind_degrees."','".$z_wind_speed."','".$z_wind_gust_speed."','".$z_pressure."','".$z_pressure_trend."','".$z_dewpoint."','".$z_heat_index."','".$z_windchill."','".$z_feelslike."','".$z_visibility."','".$z_UV."','".$z_precip_today."'";
  }
 
      $query = sprintf("insert into `%s` (%s) values (%s)", $tbl_name, $tbl_vars, $tbl_vals);
-//echo $query."\n";
      $lresult = write_log("Table insert: " . $query);
      $result = mysql_query($query);
 
@@ -194,6 +196,7 @@ $i=0;
         $lresult = write_log("END WITH ERROR");
         die($message);
     }
+
 echo "Data added.\n";
 $lresult = write_log("END");
 
@@ -237,5 +240,4 @@ function write_log($message, $logfile='') {
     return array(status => false, message => 'Unable to open log '.$logfile.'!');
   }
 }
-
-    ?>
+?>
