@@ -1,6 +1,6 @@
 <?php
 // Parse the ini file
-$ini_array = parse_ini_file("../Nestphp.ini");
+$ini_array = parse_ini_file("Nestphp.ini");
 
 $db_name=$ini_array["db_name"];
 $db_server=$ini_array["db_server"];
@@ -12,7 +12,28 @@ $s_scale=$ini_array["s_scale"];
 $pn_scale=$ini_array["pn_scale"];
 $pe_scale=$ini_array["pe_scale"];
 $nest_table = $ini_array["db_table"];
+$tzone = $ini_array["location_text"];
 
+if ($t_scale==="c") {
+    $tmode = "Celsius";
+} else {
+    $tmode = "Farenheit";
+}
+if ($pe_scale==="mb") {
+    $bmode = "millibars";
+} else {
+    $bmode = "inches";
+}
+if ($s_scale==="kph") {
+    $wmode = "m/s";
+} else {
+    $wmode = "mph";
+}
+if ($pn_scale==="metric") {
+    $rmode = "mm";
+} else {
+    $rmode = "in";
+}
 // get _GET variable
 if(isset($_GET)){
     if ($_GET['days']==="") {
@@ -47,97 +68,8 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.time.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.selection.js"></script>
-    <script language="javascript" type="text/javascript" src="flot/jquery.wxgauges.js"></script>
     <script language="javascript" type="text/javascript" src="flot/tween-min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/steelseries-min.js"></script>
-
-<style type="text/css">
-    table.gridtable {
-        font-family: verdana,arial,sans-serif;
-        font-size:11px;
-        color:#333333;
-        border-width: 1px;
-        border-color: #666666;
-        border-collapse: collapse;
-    }
-    table.gridtable th {
-        border-width: 1px;
-        padding: 8px;
-        border-style: solid;
-        border-color: #666666;
-        background-color: #dedede;
-    }
-    table.gridtable td {
-        border-width: 1px;
-        padding: 8px;
-        border-style: solid;
-        border-color: #666666;
-        background-color: #ffffff;
-    }
-       .gaugewrap {
-       height: 215px;
-       overflow: hidden;
-       padding-top: 5px;
-       width: 215px;
-    }
-       .gaugebox{width:33.3333334%;float:left;display: table-cell;}
-</style>
-<style>
-    .gaugelabel2 {font-size:8px;font-family:Tahoma,sans-serif;font-weight:bold;color:#e5e5e5;text-align:center}
-    .valuelabel2 div{font-size:9px;font-family:Tahoma,sans-serif;font-weight:bold;color:#f1f1f1;text-align:center;width:40px}
-    .graph {width:150px;height:150px;background:url("images/gaug.png") -1px -2px no-repeat;}
-    .raingraph {width:100px;height:220px;background:url("images/gaugb.png") no-repeat;}
-    .dirgraph {width:150px;height:150px;background:url(""images/gaugc.png") 0 1px no-repeat;}
-    .gaugetd {width:25%;text-align:center;vertical-align:top;}
-    .misc{background-image:url(images/nordicicons.png);background-color:transparent;background-repeat:no-repeat;}
-    .android{ background-position: 0 0; width: 16px; height: 16px; } 
-    .ax{ background-position: -17px 0; width: 18px; height: 12px; } 
-    .balloon{ background-position: -36px 0; width: 16px; height: 20px; } 
-    .bft_0{ background-position: -53px 0; width: 11px; height: 10px; } 
-    .bft_1{ background-position: -65px 0; width: 11px; height: 10px; } 
-    .bft_10{ background-position: -77px 0; width: 92px; height: 10px; } 
-    .bft_2{ background-position: -170px 0; width: 20px; height: 10px; } 
-    .bft_3{ background-position: -191px 0; width: 29px; height: 10px; } 
-    .bft_4{ background-position: -221px 0; width: 38px; height: 10px; } 
-    .bft_5{ background-position: -260px 0; width: 47px; height: 10px; } 
-    .bft_6{ background-position: -308px 0; width: 56px; height: 10px; } 
-    .bft_7{ background-position: -365px 0; width: 65px; height: 10px; } 
-    .bft_8{ background-position: -431px 0; width: 74px; height: 10px; } 
-    .bft_9{ background-position: -506px 0; width: 83px; height: 10px; } 
-    .chart_line{ background-position: -590px 0; width: 16px; height: 16px; } 
-    .cold{ background-position: -607px 0; width: 26px; height: 26px; } 
-    .cross{ background-position: -634px 0; width: 12px; height: 12px; } 
-    .dk{ background-position: -647px 0; width: 18px; height: 12px; } 
-    .down_blue{ background-position: -666px 0; width: 7px; height: 8px; } 
-    .down_red{ background-position: -674px 0; width: 7px; height: 8px; } 
-    .drop{ background-position: -682px 0; width: 10px; height: 10px; } 
-    .fi{ background-position: -693px 0; width: 18px; height: 12px; } 
-    .gb{ background-position: -712px 0; width: 18px; height: 12px; } 
-    .gl{ background-position: -731px 0; width: 18px; height: 12px; } 
-    .home{ background-position: -750px 0; width: 22px; height: 22px; } 
-    .icn-block{ background-position: -773px 0; width: 26px; height: 23px; } 
-    .icn-check{ background-position: -800px 0; width: 12px; height: 12px; } 
-    .icn-download{ background-position: -813px 0; width: 20px; height: 22px; } 
-    .icn-info{ background-position: -834px 0; width: 20px; height: 21px; } 
-    .is{ background-position: -855px 0; width: 18px; height: 12px; } 
-    .no{ background-position: -874px 0; width: 18px; height: 12px; } 
-    .se{ background-position: -893px 0; width: 18px; height: 12px; } 
-    .selmenu{ background-position: -912px 0; width: 200px; height: 28px; } 
-    .sidebottom{ background-position: -1113px 0; width: 200px; height: 300px; } 
-    .sidemiddle{ background-position: -1314px 0; width: 200px; height: 300px; } 
-    .sidetop{ background-position: -1515px 0; width: 200px; height: 300px; } 
-    .snow{ background-position: -1716px 0; width: 10px; height: 10px; } 
-    .star{ background-position: -1727px 0; width: 16px; height: 16px; } 
-    .sun_down{ background-position: -1744px 0; width: 16px; height: 16px; } 
-    .sun_up{ background-position: -1761px 0; width: 16px; height: 16px; } 
-    .ufo{ background-position: -1778px 0; width: 35px; height: 27px; } 
-    .up_green{ background-position: -1814px 0; width: 7px; height: 8px; } 
-    .up_red{ background-position: -1822px 0; width: 7px; height: 8px; } 
-    .warm{ background-position: -1830px 0; width: 26px; height: 26px; } 
-    .wet{ background-position: -1857px 0; width: 26px; height: 26px; } 
-    .wind{ background-position: -1884px 0; width: 26px; height: 26px; } 
-</style>
-
 </head>
    <body onload="init()">';
 
@@ -161,8 +93,13 @@ if (!$db_selected) {
         $last_temp_o = $row['z_temperature'];
         $last_hum_i = $row['current_humidity'];
         $last_hum_o = $row['z_relative_humidity'];
+        $last_pressure = $row['z_pressure'];
         $last_t_scale = $row['temperature_scale'];
+        $last_wind_speed = $row['z_wind_speed'];
+        $last_wind_deg = $row['z_wind_degrees'];
         $last_curr_mode = $row['current_schedule_mode'];
+        $temp = $row['current_temperature'];
+        $last_precip = $row['z_precip_today'];
     }
     if ($last_curr_mode==="COOL") {
         $bkgnd = "blue";
@@ -170,58 +107,24 @@ if (!$db_selected) {
         $bkgnd = "red";
     }
 
-//    echo '<center><table class="gridtable">
-//             <tr>
-//                <th>Mode: ' . $last_curr_mode;
-//    echo '</th>
-//                <th> Indoors</th>
-//                <th> Outdoors</th>
-//             </tr>
-//             <tr>
-//                <td>Current Temp (' . $last_t_scale;
-//    echo ')</td>
-//                <td>' . $last_temp_i;
-//    echo '</td>
-//                <td> ' . $last_temp_o;
-//    echo '</td>
-//             </tr>
-//             <tr>
-//                <td>Current Hum (%)</td>
-//                <td>' . $last_hum_i;
-//    echo '</td>
-//                <td>' . $last_hum_o;
-//    echo'</td>
-//                </tr>
-//             </table></center>
-//             ';
     echo '<div id="wrapper" style="width:1000px;margin:0 auto;">
       <table>
       <tr><td colspan=6 bgcolor="' . $bkgnd . '">&nbsp;</td></tr>
+      <tr><td colspan=6 align=center>Current Conditions</td></tr>
       <tr>
-         <td align=middle>Current Temperature</td>
-         <td align=middle>Current Humidity</td>
-         <td align=middle>Current Pressure</td>
-         <td align=middle>Current Wind Speed</td>
-         <td align=middle>Current Wind Dir</td>
-         <td align=middle>Current Windchill</td>
+         <td><canvas id="canvas1" width="200" height="200"></canvas></td>
+         <td><canvas id="canvas2" width="200" height="200"></canvas></td>
+         <td><canvas id="canvas3" width="200" height="200"></canvas></td>
+         <td><canvas id="canvas4" width="200" height="200"></canvas></td>
+         <td><canvas id="canvas5" width="200" height="200"></canvas></td>
+         <td><canvas id="canvas6" width="200" height="200"></canvas></td>
       </tr>
-      <tr>
-         <td><div id="temp" class="graph"></div></td>
-         <td><div id="hum" class="graph"></div></td>
-         <td><div id="baro" class="graph"></div></td>
-         <td><div id="wind" class="graph"></div></td>
-         <td><div id="dir" class="graph"></div></td>
-         <td><div id="chill" class="graph"></div></td>
-      </tr>
-      <tr><td>
-    <canvas id="canvasCompass1" width="400" height="400"></canvas>
-      </td></tr>
       </table>
 <p>
-      <div style="width:1000px">TEMPERATURE</div>
-      <div id="temperature" style="width:1000px;height:500px;"></div>
-      <div id="navigation" style="width:1000px;height:60px;"><BR/>
-      <table>
+      <div style="width:1100px">TEMPERATURE</div>
+      <div id="temperature" style="width:1100px;height:500px;"></div>
+      <div id="navigation" style="width:1100px;height:60px;"><BR/>
+      <table width=100%>
          <tr>
             <td><form action="index.php" method="get"><input type="hidden" name="days" value="1"><input type="submit" value="1 day"></form></td>
             <td><form action="index.php" method="get"><input type="hidden" name="days" value="3"><input type="submit" value="3 days"></form></td>
@@ -297,6 +200,7 @@ if (!$db_selected) {
                xaxis:  {
                       mode: "time",
                       timeformat: "%m/%d/%y",
+                      timezone: "browser",
                       minTickSize: [1, "day"],
                       axisLabel: "Date",
                       axisLabelUseCanvas: true,
@@ -324,6 +228,7 @@ if (!$db_selected) {
                xaxis:  {
                       mode: "time",
                       timeformat: "%m/%d/%y",
+                      timezone: "browser",
                       minTickSize: [1, "day"],
                       axisLabel: "Date",
                       axisLabelUseCanvas: true,
@@ -360,6 +265,7 @@ if (!$db_selected) {
                xaxis:  {
                       mode: "time",
                       timeformat: "%m/%d/%y",
+                      timezone: "browser",
                       minTickSize: [1, "day"],
                       axisLabel: "Date",
                       axisLabelUseCanvas: true,
@@ -389,17 +295,187 @@ if (!$db_selected) {
 });
      </script>
        <script>
-        var compass1;
         function init(){
-             compass1 = new steelseries.Compass("canvasCompass1", {
-                  size: 150
-             });
-        }
-        setInterval(function(){ setRandomValue(compass1, 360); }, 3000);
-        function setRandomValue(gauge, range) {
-             gauge.setValueAnimated(Math.random() * range);
+             // Define some sections
+             var sections = Array(steelseries.Section(-30, 0, "rgba(0, 0, 220, 0.3)"),
+             steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
+             steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
+
+             // Define one area
+             var areas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.3)"));
+
+             // Create one radial gauge
+             var radial1 = new steelseries.Radial(
+                    "canvas1", {
+                       titleString                : "Outdoor Temp",
+                       unitString                 : "'. $tmode . '",
+                       section                    : sections,
+                       area                       : areas,
+                       size                       : 190,
+                       thresholdVisible           : false,
+                       minMeasuredValueVisible    : false,
+                       maxMeasuredValueVisible    : false,
+                       lcdDecimals                : 1,
+                       ledVisible                 : false,
+                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
+                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
+                       foregroundType             : steelseries.ForegroundType.TYPE1,
+                       pointerType                : steelseries.PointerType.TYPE8,
+                       pointerColor               : steelseries.ColorDef.BLUE,
+                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
+                       knobStyle                  : steelseries.KnobStyle.SILVER,
+                       lcdColor                   : steelseries.LcdColor.STANDARD,
+                       valueColor                 : steelseries.ColorDef.BLUE,
+                       digitalFont                : false,
+                       minValue                   : -30,
+                       maxValue                   : 30,
+                       tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
+                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                               degreeScale : true
+                    });
+             var radial2 = new steelseries.Radial(
+                    "canvas2", {
+                       titleString                : "Outdoor Humidity",
+                       unitString                 : "%",
+                       section                    : sections,
+                       area                       : areas,
+                       size                       : 190,
+                       thresholdVisible           : false,
+                       minMeasuredValueVisible    : false,
+                       maxMeasuredValueVisible    : false,
+                       lcdDecimals                : 1,
+                       ledVisible                 : false,
+                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
+                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
+                       foregroundType             : steelseries.ForegroundType.TYPE1,
+                       pointerType                : steelseries.PointerType.TYPE8,
+                       pointerColor               : steelseries.ColorDef.BLUE,
+                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
+                       knobStyle                  : steelseries.KnobStyle.SILVER,
+                       lcdColor                   : steelseries.LcdColor.STANDARD,
+                       valueColor                 : steelseries.ColorDef.BLUE,
+                       digitalFont                : false,
+                       minValue                   : 0,
+                       maxValue                   : 100,
+                       tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
+                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                    });
+             var radial3 = new steelseries.Radial(
+                    "canvas3", {
+                       gaugeType                  : steelseries.GaugeType.TYPE2,
+                       titleString                : "Barometer",
+                       unitString                 : "'. $bmode . '",
+                       section                    : sections,
+                       area                       : areas,
+                       size                       : 190,
+                       thresholdVisible           : false,
+                       minMeasuredValueVisible    : false,
+                       maxMeasuredValueVisible    : false,
+                       lcdDecimals                : 1,
+                       ledVisible                 : false,
+                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
+                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
+                       foregroundType             : steelseries.ForegroundType.TYPE1,
+                       pointerType                : steelseries.PointerType.TYPE8,
+                       pointerColor               : steelseries.ColorDef.BLUE,
+                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
+                       knobStyle                  : steelseries.KnobStyle.SILVER,
+                       lcdColor                   : steelseries.LcdColor.STANDARD,
+                       valueColor                 : steelseries.ColorDef.BLUE,
+                       digitalFont                : false,
+                       minValue                   : 900,
+                       maxValue                   : 1100,
+                       tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
+                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD
+                    });
+             var radial4 = new steelseries.Radial(
+                    "canvas4", {
+                       titleString                : "WindSpeed",
+                       unitString                 : "'. $wmode . '",
+                       section                    : sections,
+                       area                       : areas,
+                       size                       : 190,
+                       thresholdVisible           : false,
+                       minMeasuredValueVisible    : false,
+                       maxMeasuredValueVisible    : false,
+                       lcdDecimals                : 1,
+                       ledVisible                 : false,
+                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
+                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
+                       foregroundType             : steelseries.ForegroundType.TYPE1,
+                       pointerType                : steelseries.PointerType.TYPE8,
+                       pointerColor               : steelseries.ColorDef.BLUE,
+                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
+                       knobStyle                  : steelseries.KnobStyle.SILVER,
+                       lcdColor                   : steelseries.LcdColor.STANDARD,
+                       valueColor                 : steelseries.ColorDef.BLUE,
+                       digitalFont                : false,
+                       minValue                   : 0,
+                       maxValue                   : 30,
+                       tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
+                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                    });
+             var radial5 = new steelseries.Compass(
+                    "canvas5", {
+                       titleString                : "Wind Direction",
+                       section                    : sections,
+                       area                       : areas,
+                       size                       : 190,
+                       thresholdVisible           : false,
+                       minMeasuredValueVisible    : false,
+                       maxMeasuredValueVisible    : false,
+                       lcdDecimals                : 1,
+                       ledVisible                 : false,
+                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
+                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
+                       foregroundType             : steelseries.ForegroundType.TYPE1,
+                       pointerType                : steelseries.PointerType.TYPE8,
+                       pointerColor               : steelseries.ColorDef.BLUE,
+                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
+                       knobStyle                  : steelseries.KnobStyle.SILVER,
+                       lcdColor                   : steelseries.LcdColor.STANDARD,
+                       valueColor                 : steelseries.ColorDef.BLUE,
+                       digitalFont                : false,
+                       tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
+                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                    });
+             var radial6 = new steelseries.Linear(
+                    "canvas6", {
+                       titleString                : "Precipitation",
+                       unitString                 : "'. $rmode . '",
+                       section                    : sections,
+                       area                       : areas,
+                       width                      : 100,
+                       height                     : 200,
+                       thresholdVisible           : false,
+                       minMeasuredValueVisible    : false,
+                       maxMeasuredValueVisible    : false,
+                       lcdDecimals                : 1,
+                       ledVisible                 : false,
+                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
+                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
+                       foregroundType             : steelseries.ForegroundType.TYPE1,
+                       pointerType                : steelseries.PointerType.TYPE8,
+                       pointerColor               : steelseries.ColorDef.BLUE,
+                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
+                       knobStyle                  : steelseries.KnobStyle.SILVER,
+                       lcdColor                   : steelseries.LcdColor.STANDARD,
+                       valueColor                 : steelseries.ColorDef.BLUE,
+                       digitalFont                : false,
+                       minValue                   : 0,
+                       maxValue                   : 100,
+                       tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
+                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                    });
+                   radial1.setValueAnimated('. $last_temp_o . ');
+                   radial2.setValueAnimated('. $last_hum_o . ');
+                   radial3.setValueAnimated('. $last_pressure . ');
+                   radial4.setValueAnimated('. $last_wind_speed . ');
+                   radial5.setValueAnimated('. $last_wind_deg . ');
+                   radial6.setValueAnimated('. $last_precip . ');
         }
   </script>
    </body>
 </html>';
 ?>
+

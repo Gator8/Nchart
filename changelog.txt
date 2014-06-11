@@ -1,0 +1,19 @@
+Nest Statistics Live
+
+---------- Version 0.5.2 ----------
++ index.php - changed pressure gauge look
++ index.php - added precip gauge
++ index.php - modified overall width to fit all gauges
++ add changelog.txt
+
+---------- Version 0.5.1 ----------
++ modified Nest.php to disable output of raw data data file
++ modified README.txt
+
+---------- Version 0.5.0 ----------
++ index.php - remove wxgauges references
++ add flot/steelseries-min.js
++ add flot/tween-min.js
+- remove flot/jquery.1.6.4.min.js
+- remove flot/jquery.wxgauges.js
+- remove images directory
