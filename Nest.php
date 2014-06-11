@@ -55,9 +55,9 @@ if (!$ar_count) {
 }
 
 // need to write out nest_raw_data.txt for gauges
-$nest_raw_data="LastData ". $z_wind_speed . " " . $z_wind_gust_speed . " " . $z_wind_degrees . " " . $z_temperature . " " . $z_relative_humidity . " " . $z_pressure . " " .$z_precip_today . "    " . $current_temperature. " " . $current_humidity. "                             " . $z_windchill. " " .$z_heat_index;
-$fn_name='/volume1/web/nest/nest_raw_data.txt';
-file_put_contents($fn_name,$nest_raw_data);
+//$nest_raw_data="LastData ". $z_wind_speed . " " . $z_wind_gust_speed . " " . $z_wind_degrees . " " . $z_temperature . " " . $z_relative_humidity . " " . $z_pressure . " " .$z_precip_today . "    " . $current_temperature. " " . $current_humidity. "                             " . $z_windchill. " " .$z_heat_index;
+//$fn_name='/volume1/web/nest/nest_raw_data.txt';
+//file_put_contents($fn_name,$nest_raw_data);
 
 foreach ($output as $var_s) {
      list($m_vars,$m_vals) = explode(':', $var_s);
