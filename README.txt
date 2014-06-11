@@ -19,7 +19,7 @@ You will need a few things to get this to work:
         4. Python installed
         5. a Wunderground key
         6. Flot charts (http://www.flotcharts.org)
-        7. Nordic Weather gauges (http://www.nordicweather.net/phpscripts.php?en)
+        7. SteelSeries Canvas gauges (http://wiki.sandaysoft.com/a/SteelSeries_Gauges)
 
 
 Data Gathering
@@ -60,13 +60,13 @@ Step 7 - Set up a cron job to run the Nest.php script every 10 or 15 minutes.
 Data Presentation
 =================
 
-Step 1 - Grab the latest version of Flot from http://www.flotcharts.org/
+Step 1 - Grab the latest version of Flot Charts.
 
-Step 2 - Install the Flot package at the same level as your Nest.php file.
+Step 2 - Grab the latest version of the SteelSeries gauges.
 
-Step 3 - Copy  jquery.1.6.4.min.js and jquery.wxgauges.js to flot directory.
+Step 3 - Install the Flot package at the same level as your Nest.php file.
 
-Step 4 - Copy images directory
+Step 4 - Copy steelseries-min.js and tween-min.js to flot directory.
 
 Step 5 - Test the package by running the nchart.php script from a browser.
          You should get a 3 paned graphic view. Don't wory right away if you
