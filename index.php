@@ -68,6 +68,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.time.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.selection.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/gauges.js"></script>
     <script language="javascript" type="text/javascript" src="flot/tween-min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/steelseries-min.js"></script>
 </head>
@@ -83,6 +84,14 @@ $db_selected = mysql_select_db($db_name, $link);
 if (!$db_selected) {
     die ('Can\'t use foo : ' . mysql_error());
 }
+
+// subtract 30 days from current date and convert to seconds
+    $adate = new DateTime();
+    $bdays = "P" . $bdays . "D";
+    $d_interval = new DateInterval( "$bdays" );
+    $d_interval->invert = 1;
+    $targetdate = $adate->add( $d_interval );
+    $targetdate = $adate->getTimestamp();
 
     //GET LAST RECORD
     $query = "SELECT * FROM " . $nest_table . " ORDER BY ddate DESC LIMIT 1";
@@ -100,6 +109,9 @@ if (!$db_selected) {
         $last_curr_mode = $row['current_schedule_mode'];
         $temp = $row['current_temperature'];
         $last_precip = $row['z_precip_today'];
+        $last_heat_st = $row['hvac_heater_state'];
+        $last_cool_st = $row['hvac_ac_state'];
+        $last_date = date('F d, H:i',$row['ddate']);
     }
     if ($last_curr_mode==="COOL") {
         $bkgnd = "blue";
@@ -107,23 +119,25 @@ if (!$db_selected) {
         $bkgnd = "red";
     }
 
+    
+    
     echo '<div id="wrapper" style="width:1000px;margin:0 auto;">
-      <table>
-      <tr><td colspan=6 bgcolor="' . $bkgnd . '">&nbsp;</td></tr>
-      <tr><td colspan=6 align=center>Current Conditions</td></tr>
+      <table border=0>
+      <tr><td colspan=6 bgcolor="' . $bkgnd . '"><canvas id="canvas7" width="35" height="25"></canvas></td></tr>
+      <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
       <tr>
-         <td><canvas id="canvas1" width="200" height="200"></canvas></td>
-         <td><canvas id="canvas2" width="200" height="200"></canvas></td>
-         <td><canvas id="canvas3" width="200" height="200"></canvas></td>
-         <td><canvas id="canvas4" width="200" height="200"></canvas></td>
-         <td><canvas id="canvas5" width="200" height="200"></canvas></td>
-         <td><canvas id="canvas6" width="200" height="200"></canvas></td>
+         <td><canvas id="canvas1" width="175" height="175"></canvas></td>
+         <td><canvas id="canvas2" width="175" height="175"></canvas></td>
+         <td><canvas id="canvas3" width="175" height="175"></canvas></td>
+         <td><canvas id="canvas4" width="175" height="175"></canvas></td>
+         <td><canvas id="canvas5" width="175" height="175"></canvas></td>
+         <td><canvas id="canvas6" width="175" height="175"></canvas></td>
       </tr>
       </table>
 <p>
       <div style="width:1100px">TEMPERATURE</div>
-      <div id="temperature" style="width:1100px;height:500px;"></div>
-      <div id="navigation" style="width:1100px;height:60px;"><BR/>
+      <div id="temperature" style="width:1000px;height:500px;"></div>
+      <div id="navigation" style="width:500px;height:60px;"><BR/>
       <table width=100%>
          <tr>
             <td><form action="index.php" method="get"><input type="hidden" name="days" value="1"><input type="submit" value="1 day"></form></td>
@@ -145,16 +159,8 @@ if (!$db_selected) {
    </div>
    <div id="placeholder" style="width:50%;height:300px;"></div>
    ';
-// subtract 30 cays from current date and convert to seconds
-    $adate = new DateTime();
-    $bdays = "P" . $bdays . "D";
-    $d_interval = new DateInterval( "$bdays" );
-    $d_interval->invert = 1;
-    $targetdate = $adate->add( $d_interval );
-    $targetdate = $adate->getTimestamp();
-
     // TEMPERATURE
-    $query = "SELECT ddate, current_temperature, target_temperature, z_temperature, auto_away FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $query = "SELECT ddate, current_temperature, target_temperature, z_temperature, auto_away, hvac_heater_state, hvac_ac_state FROM " . $nest_table . " WHERE ddate > " . $targetdate;
     $result = mysql_query($query);
     while($row = mysql_fetch_assoc($result))
     {
@@ -162,11 +168,33 @@ if (!$db_selected) {
         $datasetb[] = array($row['ddate']*1000,$row['target_temperature'],);
         $datasetc[] = array($row['ddate']*1000,$row['z_temperature']);
         $datasetd[] = array($row['ddate']*1000,$row['auto_away']);
+        if ($row['hvac_heater_state']=='False') {
+            $h_state = 0;
+        } else {
+            $h_state = .25;
+            $led_col = '#FC2200';
+        }
+        if ($row['hvac_ac_state']=='False') {
+            $c_state = 0;
+        } else {
+            $c_state = .25;
+            $led_col = '#0000FF';
+        }
+        if ($row['hvac_ac_state']=='False' && $row['hvac_heater_state']=='False') {
+            $led_col = '#757575';
+            $led_on = "false";
+        } else {
+            $led_on = "true";
+        }
+        $datasete[] = array($row['ddate']*1000,$h_state);
+        $datasetf[] = array($row['ddate']*1000,$c_state);
     }
     $final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);
     $final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);
     $final_temp_c = json_encode(($datasetc),JSON_NUMERIC_CHECK);
     $final_temp_d = json_encode(($datasetd),JSON_NUMERIC_CHECK);
+    $final_temp_e = json_encode(($datasete));
+    $final_temp_f = json_encode(($datasetf));
     $bdate = new DateTime();
 
     // BATTERY_LEVEL
@@ -255,11 +283,15 @@ if (!$db_selected) {
      var temp_b = ' . $final_temp_b . ';
      var temp_c = ' . $final_temp_c . ';
      var temp_d = ' . $final_temp_d . ';
+     var temp_e = ' . $final_temp_e . ';
+     var temp_f = ' . $final_temp_f . ';
      $.plot("#temperature",[
      {label: "Current Temp", data: temp_a},
      {label: "Target Temp", data: temp_b},
      {label: "Outdoor Temp", data: temp_c},
      {label: "Auto Away", data: temp_d, yaxis: 2, lines:{fill:.5, lineWidth:1}},
+     {label: "Heat On", data: temp_e, yaxis: 3, lines:{fill:.5, lineWidth:1}},
+     {label: "A/C on", data: temp_f, yaxis: 3, lines:{fill:.5, lineWidth:1}},
      ],
           {
                xaxis:  {
@@ -281,11 +313,16 @@ if (!$db_selected) {
                       min:0,
                       max:1,
                       show:false
+                },
+                {
+                      min:0,
+                      max:1,
+                      show:false
                 }],
                 legend: { 
                       position: "sw"
                 },
-                colors: ["#2E8ADB", "#2EDB76","#A3D0F7","#FAAFC8"],
+                colors: ["#2E8ADB", "#2EDB76","#A3D0F7","#ED85FF","#FF7383","#D4FDFF"],
                 grid: {
                       hoverable: true, 
                 },
@@ -300,9 +337,20 @@ if (!$db_selected) {
              var sections = Array(steelseries.Section(-30, 0, "rgba(0, 0, 220, 0.3)"),
              steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
              steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
-
+  
              // Define one area
              var areas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.3)"));
+             
+             //default look and feel
+             var FD = steelseries.FrameDesign.TILTED_GRAY;
+             var BC = steelseries.BackgroundColor.CARBON;
+             var FT = steelseries.ForegroundType.TYPE1;
+             var PT = steelseries.PointerType.TYPE6;
+             var PC = steelseries.ColorDef.BLUE;
+             var KT = steelseries.KnobType.STANDARD_KNOB;
+             var KS = steelseries.KnobStyle.SILVER;
+             var LC = steelseries.LcdColor.STANDARD;
+             var CD = steelseries.ColorDef.BLUE;
 
              // Create one radial gauge
              var radial1 = new steelseries.Radial(
@@ -311,27 +359,29 @@ if (!$db_selected) {
                        unitString                 : "'. $tmode . '",
                        section                    : sections,
                        area                       : areas,
-                       size                       : 190,
+                       size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
                        maxMeasuredValueVisible    : false,
                        lcdDecimals                : 1,
                        ledVisible                 : false,
-                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
-                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
-                       foregroundType             : steelseries.ForegroundType.TYPE1,
-                       pointerType                : steelseries.PointerType.TYPE8,
-                       pointerColor               : steelseries.ColorDef.BLUE,
-                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
-                       knobStyle                  : steelseries.KnobStyle.SILVER,
-                       lcdColor                   : steelseries.LcdColor.STANDARD,
-                       valueColor                 : steelseries.ColorDef.BLUE,
+                       frameDesign                : FD,
+                       backgroundColor            : BC,
+                       foregroundType             : FT,
+                       pointerType                : PT,
+                       pointerColor               : PC,
+                       knobType                   : KT,
+                       knobStyle                  : KS,
+                       lcdColor                   : LC,
+                       valueColor                 : CD,
                        digitalFont                : false,
                        minValue                   : -30,
                        maxValue                   : 30,
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
-                               degreeScale : true
+                       trendVisible               : true,
+                       presstrendval             : "up",
+                       degreeScale                : true,
                     });
              var radial2 = new steelseries.Radial(
                     "canvas2", {
@@ -339,21 +389,21 @@ if (!$db_selected) {
                        unitString                 : "%",
                        section                    : sections,
                        area                       : areas,
-                       size                       : 190,
+                       size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
                        maxMeasuredValueVisible    : false,
                        lcdDecimals                : 1,
                        ledVisible                 : false,
-                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
-                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
-                       foregroundType             : steelseries.ForegroundType.TYPE1,
-                       pointerType                : steelseries.PointerType.TYPE8,
-                       pointerColor               : steelseries.ColorDef.BLUE,
-                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
-                       knobStyle                  : steelseries.KnobStyle.SILVER,
-                       lcdColor                   : steelseries.LcdColor.STANDARD,
-                       valueColor                 : steelseries.ColorDef.BLUE,
+                       frameDesign                : FD,
+                       backgroundColor            : BC,
+                       foregroundType             : FT,
+                       pointerType                : PT,
+                       pointerColor               : PC,
+                       knobType                   : KT,
+                       knobStyle                  : KS,
+                       lcdColor                   : LC,
+                       valueColor                 : CD,
                        digitalFont                : false,
                        minValue                   : 0,
                        maxValue                   : 100,
@@ -362,31 +412,33 @@ if (!$db_selected) {
                     });
              var radial3 = new steelseries.Radial(
                     "canvas3", {
-                       gaugeType                  : steelseries.GaugeType.TYPE2,
+                       gaugeType                  : steelseries.GaugeType.TYPE3,
                        titleString                : "Barometer",
                        unitString                 : "'. $bmode . '",
                        section                    : sections,
                        area                       : areas,
-                       size                       : 190,
+                       size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
                        maxMeasuredValueVisible    : false,
                        lcdDecimals                : 1,
                        ledVisible                 : false,
-                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
-                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
-                       foregroundType             : steelseries.ForegroundType.TYPE1,
-                       pointerType                : steelseries.PointerType.TYPE8,
-                       pointerColor               : steelseries.ColorDef.BLUE,
-                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
-                       knobStyle                  : steelseries.KnobStyle.SILVER,
-                       lcdColor                   : steelseries.LcdColor.STANDARD,
-                       valueColor                 : steelseries.ColorDef.BLUE,
+                       frameDesign                : FD,
+                       backgroundColor            : BC,
+                       foregroundType             : FT,
+                       pointerType                : PT,
+                       pointerColor               : PC,
+                       knobType                   : KT,
+                       knobStyle                  : KS,
+                       lcdColor                   : LC,
+                       valueColor                 : CD,
                        digitalFont                : false,
-                       minValue                   : 900,
-                       maxValue                   : 1100,
+                       minValue                   : 950,
+                       maxValue                   : 1050,
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
-                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD
+                       labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                       trendVisible               : true,
+                       trendState                 : "UP",
                     });
              var radial4 = new steelseries.Radial(
                     "canvas4", {
@@ -394,21 +446,21 @@ if (!$db_selected) {
                        unitString                 : "'. $wmode . '",
                        section                    : sections,
                        area                       : areas,
-                       size                       : 190,
+                       size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
                        maxMeasuredValueVisible    : false,
                        lcdDecimals                : 1,
                        ledVisible                 : false,
-                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
-                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
-                       foregroundType             : steelseries.ForegroundType.TYPE1,
-                       pointerType                : steelseries.PointerType.TYPE8,
-                       pointerColor               : steelseries.ColorDef.BLUE,
-                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
-                       knobStyle                  : steelseries.KnobStyle.SILVER,
-                       lcdColor                   : steelseries.LcdColor.STANDARD,
-                       valueColor                 : steelseries.ColorDef.BLUE,
+                       frameDesign                : FD,
+                       backgroundColor            : BC,
+                       foregroundType             : FT,
+                       pointerType                : PT,
+                       pointerColor               : PC,
+                       knobType                   : KT,
+                       knobStyle                  : KS,
+                       lcdColor                   : LC,
+                       valueColor                 : CD,
                        digitalFont                : false,
                        minValue                   : 0,
                        maxValue                   : 30,
@@ -420,21 +472,21 @@ if (!$db_selected) {
                        titleString                : "Wind Direction",
                        section                    : sections,
                        area                       : areas,
-                       size                       : 190,
+                       size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
                        maxMeasuredValueVisible    : false,
                        lcdDecimals                : 1,
                        ledVisible                 : false,
-                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
-                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
-                       foregroundType             : steelseries.ForegroundType.TYPE1,
-                       pointerType                : steelseries.PointerType.TYPE8,
-                       pointerColor               : steelseries.ColorDef.BLUE,
-                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
-                       knobStyle                  : steelseries.KnobStyle.SILVER,
-                       lcdColor                   : steelseries.LcdColor.STANDARD,
-                       valueColor                 : steelseries.ColorDef.BLUE,
+                       frameDesign                : FD,
+                       backgroundColor            : BC,
+                       foregroundType             : FT,
+                       pointerType                : PT,
+                       pointerColor               : PC,
+                       knobType                   : KT,
+                       knobStyle                  : KS,
+                       lcdColor                   : LC,
+                       valueColor                 : CD,
                        digitalFont                : false,
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
@@ -446,36 +498,48 @@ if (!$db_selected) {
                        section                    : sections,
                        area                       : areas,
                        width                      : 100,
-                       height                     : 200,
+                       height                     : 185,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
                        maxMeasuredValueVisible    : false,
                        lcdDecimals                : 1,
                        ledVisible                 : false,
-                       frameDesign                : steelseries.FrameDesign.TILTED_GRAY,
-                       backgroundColor            : steelseries.BackgroundColor.BEIGE,
-                       foregroundType             : steelseries.ForegroundType.TYPE1,
-                       pointerType                : steelseries.PointerType.TYPE8,
-                       pointerColor               : steelseries.ColorDef.BLUE,
-                       knobType                   : steelseries.KnobType.STANDARD_KNOB,
-                       knobStyle                  : steelseries.KnobStyle.SILVER,
-                       lcdColor                   : steelseries.LcdColor.STANDARD,
-                       valueColor                 : steelseries.ColorDef.BLUE,
+                       frameDesign                : FD,
+                       backgroundColor            : BC,
+                       foregroundType             : FT,
+                       pointerType                : PT,
+                       pointerColor               : PC,
+                       knobType                   : KT,
+                       knobStyle                  : KS,
+                       lcdColor                   : LC,
+                       valueColor                 : CD,
                        digitalFont                : false,
                        minValue                   : 0,
                        maxValue                   : 100,
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
                     });
-                   radial1.setValueAnimated('. $last_temp_o . ');
-                   radial2.setValueAnimated('. $last_hum_o . ');
-                   radial3.setValueAnimated('. $last_pressure . ');
-                   radial4.setValueAnimated('. $last_wind_speed . ');
-                   radial5.setValueAnimated('. $last_wind_deg . ');
-                   radial6.setValueAnimated('. $last_precip . ');
+             var led1 = new steelseries.Led(
+                    "canvas7", {
+                       titleString                : "System is ON",
+                       width                      : 25,
+                       height                     : 25,
+                       blink                      : true,
+                       glowColor                  : "'. $led_col .'",
+                    });
+                    
+                    // need way to show if heater or ac is ON
+                   radial1.setValueAnimated('. $last_temp_o .');
+                   radial2.setValueAnimated('. $last_hum_o .');
+                   radial3.setValueAnimated('. $last_pressure .');
+                   radial4.setValueAnimated('. $last_wind_speed .');
+                   radial5.setValueAnimated('. $last_wind_deg .');
+                   radial6.setValueAnimated('. $last_precip .');
+                   led1.setOn('. $led_on .');
         }
   </script>
    </body>
 </html>';
 ?>
 
+     

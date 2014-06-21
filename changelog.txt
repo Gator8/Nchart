@@ -1,5 +1,11 @@
 Nest Statistics Live
 
+---------- Version 0.5.3 ----------
++ index.php - added heat on, cool on to main graph
++ index.php - added last update date/time to table header
++ index.php - added system on led indicator to top header
++ add n1.txt - file needed to create db.
+
 ---------- Version 0.5.2 ----------
 + index.php - changed pressure gauge look
 + index.php - added precip gauge
