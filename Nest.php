@@ -14,6 +14,8 @@ $d_scale=$ini_array["d_scale"];
 $s_scale=$ini_array["s_scale"];
 $pn_scale=$ini_array["pn_scale"];
 $pe_scale=$ini_array["pe_scale"];
+$nest_region=$ini_array["N_region"];
+$nest_name=$ini_array["N_name"];
 
 $db_exist=0;
 
@@ -78,6 +80,11 @@ foreach($f_nest as $item) {
    }
 }
 
+// if python returns blank name, used predefined name from INI file
+if ($tbl_name==""){
+    $tbl_name=$nest_name;
+}
+
 $link = mysql_connect($db_server, $db_user, $db_pass, TRUE);
 if (!$link) {
     die('Could not connect: ' . mysql_error());
@@ -123,7 +130,8 @@ while ($row = mysql_fetch_array($result_bk)) {
 if ($db_exist=="0") {
     $lresult = write_log("Database does not exist. Creating from defined version.");
     //read sql file into a variable
-    $tbl_sql = file_get_contents("n1.txt");
+    $db_def_file= $nest_region . ".txt";
+    $tbl_sql = file_get_contents($db_def_file);
 
     $query = sprintf("create table $tbl_name ( $tbl_sql )");
     $result = mysql_query($query);

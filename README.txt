@@ -25,16 +25,7 @@ You will need a few things to get this to work:
 Data Gathering
 ==============
 
-Step 1 - modify the NEST.sql script and replace 'TABLE' with the name of the 
-         Nest thermostat. Each Nest is given it's own name by the owner - i.e.
-         'Hallway', 'Bedroom', etc. Make sure the name of the table matches 
-         the name of the Nest thermostat or your data will not be logged.
-
-Step 2 - Create the database. You can name it anything you want.
-
-Step 3 - Create the table. Use the modified Nest.sql to create the table.
-
-Step 4 - Test the nest.py script by running it as follows:
+Step 1 - Test the nest.py script by running it as follows:
 
             python nest.py --user [USER] --password [PASS] show
 
@@ -42,9 +33,9 @@ Step 4 - Test the nest.py script by running it as follows:
          account password. The result of the command should be a screen
          full of data that has already been gathered by Nest.
 
-Step 5 - Modify the Nestphp.ini. 
+Step 2 - Modify the Nestphp.ini. 
 
-Step 6 - Test the Nest.php scipt by running the following command:
+Step 3 - Test the Nest.php scipt by running the following command:
 
             php Nest.php
 
@@ -53,7 +44,7 @@ Step 6 - Test the Nest.php scipt by running the following command:
          This file will also give you the exact SQL statement that was used
          when trying to insert data.
 
-Step 7 - Set up a cron job to run the Nest.php script every 10 or 15 minutes. 
+Step 4 - Set up a cron job to run the Nest.php script every 10 or 15 minutes. 
 
 
 

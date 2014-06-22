@@ -1,25 +1,37 @@
 Nest Statistics Live
 
+---------- Version 0.5.4 ----------
++ mod Nestphp.ini - add N_region to distinguish between GB and NA
++ mod Nestphp.ini - add N_name in case Nest name is not returned by python script
++ mod Nest.php - use region file to create db
+               - if Nest name does not exist in json, use name from INI file
++ mod changelog.txt - more uniformity
++ mod README.txt
++ add GB.txt - file for UK version of database
++ add NA.txt - file for North America version of database
+- del n1.txt
+- del Nest.sql
+
 ---------- Version 0.5.3 ----------
-+ index.php - added heat on, cool on to main graph
-+ index.php - added last update date/time to table header
-+ index.php - added system on led indicator to top header
++ mod index.php - added heat on, cool on to main graph
++ mod index.php - added last update date/time to table header
++ mod index.php - added system on led indicator to top header
 + add n1.txt - file needed to create db.
 
 ---------- Version 0.5.2 ----------
-+ index.php - changed pressure gauge look
-+ index.php - added precip gauge
-+ index.php - modified overall width to fit all gauges
++ mod index.php - changed pressure gauge look
++ mod index.php - added precip gauge
++ mod index.php - modified overall width to fit all gauges
 + add changelog.txt
 
 ---------- Version 0.5.1 ----------
-+ modified Nest.php to disable output of raw data data file
-+ modified README.txt
++ mod Nest.php to disable output of raw data data file
++ mod README.txt
 
 ---------- Version 0.5.0 ----------
-+ index.php - remove wxgauges references
++ mod index.php - remove wxgauges references
 + add flot/steelseries-min.js
 + add flot/tween-min.js
-- remove flot/jquery.1.6.4.min.js
-- remove flot/jquery.wxgauges.js
-- remove images directory
+- del flot/jquery.1.6.4.min.js
+- del flot/jquery.wxgauges.js
+- del images directory
