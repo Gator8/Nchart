@@ -118,9 +118,10 @@ if (!$db_selected) {
     } else {
         $bkgnd = "red";
     }
+    if ($last_precip==="--"){
+        $last_precip = 0;
+    }
 
-    
-    
     echo '<div id="wrapper" style="width:1000px;margin:0 auto;">
       <table border=0>
       <tr><td colspan=6 bgcolor="' . $bkgnd . '"><canvas id="canvas7" width="35" height="25"></canvas></td></tr>

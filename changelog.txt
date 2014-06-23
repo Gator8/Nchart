@@ -1,5 +1,8 @@
 Nest Statistics Live
 
+---------- Version 0.5.5 ----------
++ mod index.php - non-numeric precip value give invalid syntax
+
 ---------- Version 0.5.4 ----------
 + mod Nestphp.ini - add N_region to distinguish between GB and NA
 + mod Nestphp.ini - add N_name in case Nest name is not returned by python script
