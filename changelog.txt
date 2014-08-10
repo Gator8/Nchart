@@ -1,5 +1,18 @@
 Nest Statistics Live
 
+---------- Version 0.5.6 ----------
++ mod index.php - correct spelling mistakes; set min and max values for different scales
++ mod index.php - temperature graph y-axis scale auto-adjusts
++ mod index.php - fix pressure trend indicator. Remove temp trend indicator.
++ mod index.php - remove colored border at the top of the page. LED color indicator changes with HEAT/COOL/RANGE status
++ mod index.php - fixed metric windspeed label
++ mod index.php - fix barometer metric range
++ mod index.php - add fan_state led for last state
++ mod index.php - add fan_state to temperature graph
++ mod index.php - shuffle data so fan_state color does not overpower others
++ mod index.php - fix missing day value for 3 months
++ mod index.php - fix min/max range values for temp graph
+
 ---------- Version 0.5.5 ----------
 + mod index.php - non-numeric precip value give invalid syntax
 

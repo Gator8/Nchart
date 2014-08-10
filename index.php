@@ -16,23 +16,39 @@ $tzone = $ini_array["location_text"];
 
 if ($t_scale==="c") {
     $tmode = "Celsius";
+    $t_min=-30;
+    $t_max=35;
 } else {
-    $tmode = "Farenheit";
+    $tmode = "Fahrenheit";
+    $t_min=-20;
+    $t_max=90;
 }
 if ($pe_scale==="mb") {
     $bmode = "millibars";
+    $baro_max=1040;
+    $baro_min=970;
 } else {
     $bmode = "inches";
+    $baro_max=30.25;
+    $baro_min=29.5;
 }
 if ($s_scale==="kph") {
-    $wmode = "m/s";
+    $wmode = "kph";
+    $ws_min=0;
+    $ws_max=90;
 } else {
     $wmode = "mph";
+    $ws_min=0;
+    $ws_max=50;
 }
 if ($pn_scale==="metric") {
     $rmode = "mm";
+    $r_min=0;
+    $r_max=50;
 } else {
     $rmode = "in";
+    $r_min=0;
+    $r_max=2;
 }
 // get _GET variable
 if(isset($_GET)){
@@ -48,12 +64,14 @@ if(isset($_GET)){
         $bdays = 14;
     } elseif ($_GET['days']==="30") {
         $bdays = 30;
+    } elseif ($_GET['days']==="90") {
+        $bdays = 90;
     } elseif ($_GET['days']==="180") {
         $bdays = 180;
     } elseif ($_GET['days']==="365") {
         $bdays = 365;
     } else {
-        $bdays = 7;
+        $bdays = $_GET['days'];
     }
 }
 
@@ -64,11 +82,12 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
     <script language="javascript" type="text/javascript" src="flot/jquery.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.resize.min.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.flot.axislabels.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.rangeselection.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.time.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.flot.direction.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.selection.js"></script>
-    <script language="javascript" type="text/javascript" src="flot/gauges.js"></script>
     <script language="javascript" type="text/javascript" src="flot/tween-min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/steelseries-min.js"></script>
 </head>
@@ -112,20 +131,61 @@ if (!$db_selected) {
         $last_heat_st = $row['hvac_heater_state'];
         $last_cool_st = $row['hvac_ac_state'];
         $last_date = date('F d, H:i',$row['ddate']);
+        $last_leaf = $row['leaf'];
+        $last_p_trend= $row['z_pressure_trend'];
+        $last_fan_state= $row['hvac_fan_state'];
     }
+
+    //set status led color
     if ($last_curr_mode==="COOL") {
         $bkgnd = "blue";
-    } else {
+        $led_col = "BLUE_LED";
+    } elseif ($last_curr_mode==="HEAT") {
         $bkgnd = "red";
+        $led_col = "RED_LED";
+    } elseif ($last_curr_mode==="RANGE") {
+        $bkgnd = "purple";
+        $led_col = "MAGENTA_LED";
     }
-    if ($last_precip==="--"){
-        $last_precip = 0;
+
+    //turn temp led on
+    if ($last_heat_st=='True') {
+        $led_on = "true";
+    }
+    if ($last_cool_st=='True') {
+        $led_on = "true";
+    }
+
+    //turn leaf led on
+    if ($last_leaf=='True') {
+        $leaf_led_on = "true";
+    } else {
+        $leaf_led_on = "false";
+    }
+
+    //turn fan led on
+    if ($last_fan_state=='True') {
+        $fan_led_on = "true";
+    } else {
+        $fan_led_on = "false";
+    }
+    //set pressure trend indicator direction
+    if ($last_p_trend=='-') {
+        $g_p_trend = "steelseries.TrendState.DOWN";
+    } elseif ($last_p_trend=='+') {
+        $g_p_trend = "steelseries.TrendState.UP";
+    } else {
+        $g_p_trend = "steelseries.TrendState.STEADY";
     }
 
     echo '<div id="wrapper" style="width:1000px;margin:0 auto;">
       <table border=0>
-      <tr><td colspan=6 bgcolor="' . $bkgnd . '"><canvas id="canvas7" width="35" height="25"></canvas></td></tr>
       <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
+      <tr><td colspan=6>
+             <canvas id="canvas7" width="35" height="25"></canvas>AC/Heat Status
+             <canvas id="canvas9" width="35" height="25"></canvas>Fan Status
+             <canvas id="canvas8" width="35" height="25"></canvas>Leaf Status
+      </td></tr>
       <tr>
          <td><canvas id="canvas1" width="175" height="175"></canvas></td>
          <td><canvas id="canvas2" width="175" height="175"></canvas></td>
@@ -157,12 +217,20 @@ if (!$db_selected) {
       <div style="width:500px;float:right;">BATTERY LEVEL</div>
       <div id="humidity" style="float:left;width:500px;height:250px;"></div>
       <div id="placeholder" style="float:right;width:500px;height:250px;"></div>
+      <div style="width:1000px;height:150px;">&nbsp;</div>
+      <div style="width:1000px;height:150px;">PRESSURE & WIND SPEED</div>
+      <div id="pressure" style="float:left;width:1000px;height:150px;"></div>
+      <div style="width:1000px;height:175px;">PRECIPITATION</div>
+      <div id="precip" style="float:left;width:1000px;height:150px;"></div>
+
    </div>
    <div id="placeholder" style="width:50%;height:300px;"></div>
    ';
     // TEMPERATURE
-    $query = "SELECT ddate, current_temperature, target_temperature, z_temperature, auto_away, hvac_heater_state, hvac_ac_state FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $query = "SELECT ddate, current_temperature, target_temperature, z_temperature, auto_away, hvac_heater_state, hvac_ac_state, hvac_fan_state, leaf FROM " . $nest_table . " WHERE ddate > " . $targetdate;
     $result = mysql_query($query);
+    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $result2 = mysql_query($query);
     while($row = mysql_fetch_assoc($result))
     {
         $dataseta[] = array($row['ddate']*1000,$row['current_temperature']);
@@ -173,22 +241,31 @@ if (!$db_selected) {
             $h_state = 0;
         } else {
             $h_state = .25;
-            $led_col = '#FC2200';
         }
         if ($row['hvac_ac_state']=='False') {
             $c_state = 0;
         } else {
             $c_state = .25;
-            $led_col = '#0000FF';
         }
-        if ($row['hvac_ac_state']=='False' && $row['hvac_heater_state']=='False') {
-            $led_col = '#757575';
-            $led_on = "false";
+        if ($row['hvac_fan_state']=='False') {
+            $f_state = 0;
         } else {
-            $led_on = "true";
+            $f_state = .25;
         }
-        $datasete[] = array($row['ddate']*1000,$h_state);
+        if ($row['leaf']=='False') {
+            $l_state = 0;
+        } else {
+            $l_state = .25;
+        }
+        $datasete[] = array($row['ddate']*1000,$f_state);
         $datasetf[] = array($row['ddate']*1000,$c_state);
+        $datasetg[] = array($row['ddate']*1000,$l_state);
+        $dataseth[] = array($row['ddate']*1000,$h_state);
+    }
+    while($row = mysql_fetch_assoc($result2))
+    {
+        $t_f_min=$row['min_temp']-5;
+        $t_f_max=$row['max_temp']+5;
     }
     $final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);
     $final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);
@@ -196,6 +273,8 @@ if (!$db_selected) {
     $final_temp_d = json_encode(($datasetd),JSON_NUMERIC_CHECK);
     $final_temp_e = json_encode(($datasete));
     $final_temp_f = json_encode(($datasetf));
+    $final_temp_g = json_encode(($datasetg));
+    $final_temp_h = json_encode(($dataseth));
     $bdate = new DateTime();
 
     // BATTERY_LEVEL
@@ -220,6 +299,19 @@ if (!$db_selected) {
     $final_hum_b = json_encode(($dataset2b),JSON_NUMERIC_CHECK);
     $final_hum_c = json_encode(($dataset2c),JSON_NUMERIC_CHECK);
     
+    // PRESSURE WIND DIRECTION AND PRECIP
+    $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_precip_today FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $result = mysql_query($query);
+    while($row = mysql_fetch_assoc($result))
+    {
+        $dataset3a[] = array($row['ddate']*1000,$row['z_pressure']);
+        $dataset3b[] = array($row['ddate']*1000,$row['z_wind_speed'],$row['z_wind_degrees']);
+        $dataset3c[] = array($row['ddate']*1000,$row['z_precip_today']);
+    }
+    $final_pres_a = json_encode(($dataset3a),JSON_NUMERIC_CHECK);
+    $final_pres_b = json_encode(($dataset3b),JSON_NUMERIC_CHECK);
+    $final_precip = json_encode(($dataset3c),JSON_NUMERIC_CHECK);
+    
     //now craft the html
    echo '<script type="text/javascript">
     $(function () {
@@ -231,7 +323,6 @@ if (!$db_selected) {
                       timeformat: "%m/%d/%y",
                       timezone: "browser",
                       minTickSize: [1, "day"],
-                      axisLabel: "Date",
                       axisLabelUseCanvas: true,
                       axisLabelFontSizePixels: 12,
                       axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
@@ -243,7 +334,6 @@ if (!$db_selected) {
                 }
           }
      );
-
      var humidity_a = ' . $final_hum_a . ';
      var humidity_b = ' . $final_hum_b . ';
      var humidity_c = ' . $final_hum_c . ';
@@ -259,7 +349,6 @@ if (!$db_selected) {
                       timeformat: "%m/%d/%y",
                       timezone: "browser",
                       minTickSize: [1, "day"],
-                      axisLabel: "Date",
                       axisLabelUseCanvas: true,
                       axisLabelFontSizePixels: 12,
                       axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
@@ -280,19 +369,88 @@ if (!$db_selected) {
           }
      );
 
+     var pressure_a = ' . $final_pres_a . ';
+     var pressure_b = ' . $final_pres_b . ';
+     $.plot("#pressure",[
+     {label: "Pressure", data: pressure_a, yaxis: 2},
+     {label: "Wind Speed", data: pressure_b},
+     ],
+          {
+              xaxis:  {
+                      mode: "time",
+                      timeformat: "%m/%d/%y",
+                      timezone: "browser",
+                      minTickSize: [1, "day"],
+                      axisLabelUseCanvas: true,
+                      axisLabelFontSizePixels: 12,
+                      axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
+                      axisLabelPadding: 5
+                },
+              yaxes:  [{
+                      min:0,
+                      max:100,
+                      show:true,
+                      position: "right",
+                },
+              {
+                      min:950,
+                      max:1070,
+                      position: "left",
+                      axisLabel: "' . $pe_scale . '",
+                }],
+              legend: { 
+                      position: "sw"
+                },
+              colors: ["#2E8ADB", "#2EDB76","#A3D0F7"],
+          }
+     );
+
+     var precip_a = ' . $final_precip . ';
+     $.plot("#precip",[
+     {label: "Precipitation", data: precip_a, lines:{fill:.25, lineWidth:1}},
+     ],
+          {
+              xaxis:  {
+                      mode: "time",
+                      timeformat: "%m/%d/%y",
+                      timezone: "browser",
+                      minTickSize: [1, "day"],
+                      axisLabelUseCanvas: true,
+                      axisLabelFontSizePixels: 12,
+                      axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
+                      axisLabelPadding: 5
+                },
+              yaxis:  {
+                      min:"' . $r_min . '",
+                      max:"' . $r_max . '",
+                      show:true,
+                      position: "left",
+                      axisLabel: "' . $rmode . '",
+                },
+              legend: { 
+                      position: "nw"
+                },
+              colors: ["#2E8ADB"],
+          }
+     );
+
      var temp_a = ' . $final_temp_a . ';
      var temp_b = ' . $final_temp_b . ';
      var temp_c = ' . $final_temp_c . ';
      var temp_d = ' . $final_temp_d . ';
      var temp_e = ' . $final_temp_e . ';
      var temp_f = ' . $final_temp_f . ';
+     var temp_g = ' . $final_temp_g . ';
+     var temp_h = ' . $final_temp_h . ';
      $.plot("#temperature",[
      {label: "Current Temp", data: temp_a},
      {label: "Target Temp", data: temp_b},
      {label: "Outdoor Temp", data: temp_c},
-     {label: "Auto Away", data: temp_d, yaxis: 2, lines:{fill:.5, lineWidth:1}},
-     {label: "Heat On", data: temp_e, yaxis: 3, lines:{fill:.5, lineWidth:1}},
-     {label: "A/C on", data: temp_f, yaxis: 3, lines:{fill:.5, lineWidth:1}},
+     {label: "Auto Away", data: temp_d, yaxis: 2, lines:{fill:.25, lineWidth:1}},
+     {label: "Fan on", data: temp_e, yaxis: 3, lines:{fill:.15, lineWidth:1}},
+     {label: "A/C on", data: temp_f, yaxis: 3, lines:{fill:.15, lineWidth:1}},
+     {label: "Leaf", data: temp_g, yaxis: 3, lines:{fill:.30, lineWidth:1}},
+     {label: "Heat On", data: temp_h, yaxis: 3, lines:{fill:.15, lineWidth:1}},
      ],
           {
                xaxis:  {
@@ -300,15 +458,14 @@ if (!$db_selected) {
                       timeformat: "%m/%d/%y",
                       timezone: "browser",
                       minTickSize: [1, "day"],
-                      axisLabel: "Date",
                       axisLabelUseCanvas: true,
                       axisLabelFontSizePixels: 12,
                       axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
                       axisLabelPadding: 5
                 },
                 yaxes: [{
-                      min:-5,
-                      max:35
+                      min:'.$t_f_min.',
+                      max:'.$t_f_max.'
                 },
                 {
                       min:0,
@@ -321,9 +478,12 @@ if (!$db_selected) {
                       show:false
                 }],
                 legend: { 
-                      position: "sw"
+                      position: "sw",
+                      noColumns: 3,
+                      backgroundOpacity: .75,
+                      labelBoxBorderColor: "#000000"
                 },
-                colors: ["#2E8ADB", "#2EDB76","#A3D0F7","#ED85FF","#FF7383","#D4FDFF"],
+                colors: ["#2E8ADB", "#FFA617","#A3D0F7","#ED85FF","#CECECE","#2EAFFF","#2EDB76","#F72556"],
                 grid: {
                       hoverable: true, 
                 },
@@ -338,10 +498,10 @@ if (!$db_selected) {
              var sections = Array(steelseries.Section(-30, 0, "rgba(0, 0, 220, 0.3)"),
              steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
              steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
-  
+
              // Define one area
              var areas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.3)"));
-             
+
              //default look and feel
              var FD = steelseries.FrameDesign.TILTED_GRAY;
              var BC = steelseries.BackgroundColor.CARBON;
@@ -376,12 +536,10 @@ if (!$db_selected) {
                        lcdColor                   : LC,
                        valueColor                 : CD,
                        digitalFont                : false,
-                       minValue                   : -30,
-                       maxValue                   : 30,
+                       minValue                   : '. $t_min . ',
+                       maxValue                   : '. $t_max . ',
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
-                       trendVisible               : true,
-                       presstrendval             : "up",
                        degreeScale                : true,
                     });
              var radial2 = new steelseries.Radial(
@@ -434,12 +592,11 @@ if (!$db_selected) {
                        lcdColor                   : LC,
                        valueColor                 : CD,
                        digitalFont                : false,
-                       minValue                   : 950,
-                       maxValue                   : 1050,
+                       minValue                   : ' . $baro_min . ',
+                       maxValue                   : ' . $baro_max . ',
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
                        trendVisible               : true,
-                       trendState                 : "UP",
                     });
              var radial4 = new steelseries.Radial(
                     "canvas4", {
@@ -463,8 +620,8 @@ if (!$db_selected) {
                        lcdColor                   : LC,
                        valueColor                 : CD,
                        digitalFont                : false,
-                       minValue                   : 0,
-                       maxValue                   : 30,
+                       minValue                   : ' . $ws_min . ',
+                       maxValue                   : ' . $ws_max . ',
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
                     });
@@ -498,7 +655,7 @@ if (!$db_selected) {
                        unitString                 : "'. $rmode . '",
                        section                    : sections,
                        area                       : areas,
-                       width                      : 100,
+                       width                      : 85,
                        height                     : 185,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
@@ -515,32 +672,49 @@ if (!$db_selected) {
                        lcdColor                   : LC,
                        valueColor                 : CD,
                        digitalFont                : false,
-                       minValue                   : 0,
-                       maxValue                   : 100,
+                       minValue                   : ' . $r_min . ',
+                       maxValue                   : ' . $r_max . ',
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
                     });
              var led1 = new steelseries.Led(
                     "canvas7", {
-                       titleString                : "System is ON",
                        width                      : 25,
                        height                     : 25,
                        blink                      : true,
                        glowColor                  : "'. $led_col .'",
                     });
-                    
+             var led2 = new steelseries.Led(
+                    "canvas8", {
+                       width                      : 25,
+                       height                     : 25,
+                       blink                      : true,
+                       glowColor                  : "'. $leaf_led_col .'",
+                    });
                     // need way to show if heater or ac is ON
+             var led3 = new steelseries.Led(
+                    "canvas9", {
+                       width                      : 25,
+                       height                     : 25,
+                       blink                      : true,
+                       glowColor                  : "'. $leaf_led_col .'",
+                    });
                    radial1.setValueAnimated('. $last_temp_o .');
                    radial2.setValueAnimated('. $last_hum_o .');
                    radial3.setValueAnimated('. $last_pressure .');
+                   radial3.setTrend('. $g_p_trend . ');
                    radial4.setValueAnimated('. $last_wind_speed .');
                    radial5.setValueAnimated('. $last_wind_deg .');
                    radial6.setValueAnimated('. $last_precip .');
-                   led1.setOn('. $led_on .');
+                   led1.setLedColor(steelseries.LedColor.' . $led_col . ');
+                   led2.setLedColor(steelseries.LedColor.GREEN_LED);
+                   led3.setLedColor(steelseries.LedColor.YELLOW_LED);
+                   led1.blink('. $led_on .');
+                   led2.blink('. $leaf_led_on .');
+                   led3.blink('. $fan_led_on .');
         }
   </script>
    </body>
 </html>';
 ?>
 
-     
