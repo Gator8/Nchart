@@ -1,6 +1,7 @@
 <?php
 // Parse the ini file
 $ini_array = parse_ini_file("Nestphp.ini");
+define("DEFAULT_LOG","load.log");
 
 $db_name=$ini_array["db_name"];
 $db_server=$ini_array["db_server"];
@@ -51,10 +52,8 @@ if ($pn_scale==="metric") {
     $r_max=2;
 }
 // get _GET variable
-if(isset($_GET)){
-    if ($_GET['days']==="") {
-        $bdays = 7;
-    } elseif ($_GET['days']==="1") {
+if(isset($_GET['days'])){
+    if ($_GET['days']==="1") {
         $bdays = 1;
     } elseif ($_GET['days']==="3") {
         $bdays = 3;
@@ -73,7 +72,10 @@ if(isset($_GET)){
     } else {
         $bdays = $_GET['days'];
     }
+   } else {
+      $bdays = 7;
 }
+$lresult = write_log("No. of Days: " . $bdays);
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
  <head>
@@ -228,8 +230,12 @@ if (!$db_selected) {
    ';
     // TEMPERATURE
     $query = "SELECT ddate, current_temperature, target_temperature, z_temperature, auto_away, hvac_heater_state, hvac_ac_state, hvac_fan_state, leaf FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $lresult = write_log("Query: " . $query);
     $result = mysql_query($query);
+    $num_rows = mysql_num_rows($result);
     $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $lresult = write_log("Query: " . $query);
+    $lresult = write_log("Rows Returned: " . $num_rows);
     $result2 = mysql_query($query);
     while($row = mysql_fetch_assoc($result))
     {
@@ -355,7 +361,7 @@ if (!$db_selected) {
                       axisLabelPadding: 5
                 },
                 yaxis:  {
-                      min:0,
+                      min:20,
                       max:100
                 },
                 legend: { 
@@ -716,5 +722,42 @@ if (!$db_selected) {
   </script>
    </body>
 </html>';
+
+function write_log($message, $logfile='') {
+  // Determine log file
+  if($logfile == '') {
+    // checking if the constant for the log file is defined
+    if (defined('DEFAULT_LOG') == TRUE) {
+        $logfile = DEFAULT_LOG;
+    }
+    // the constant is not defined and there is no log file given as input
+    else {
+        error_log('No log file defined!',0);
+        return array(status => false, message => 'No log file defined!');
+    }
+  }
+ 
+  // Get time of request
+  if( ($time = $_SERVER['REQUEST_TIME']) == '') {
+    $time = time();
+  }
+
+  // Format the date and time
+  $date = date("Y-m-d H:i:s", $time);
+ 
+  // Append to the log file
+  if($fd = @fopen($logfile, "a")) {
+    $result = fputcsv($fd, array($date, $message));
+    fclose($fd);
+ 
+    if($result > 0)
+      return array(status => true);  
+    else
+      return array(status => false, message => 'Unable to write to '.$logfile.'!');
+  }
+  else {
+    return array(status => false, message => 'Unable to open log '.$logfile.'!');
+  }
+}
 ?>
 

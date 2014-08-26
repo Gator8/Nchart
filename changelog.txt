@@ -1,5 +1,8 @@
 Nest Statistics Live
 
+---------- Version 0.5.7 ----------
++ mod index.php - add rudimentary logging
+
 ---------- Version 0.5.6 ----------
 + mod index.php - correct spelling mistakes; set min and max values for different scales
 + mod index.php - temperature graph y-axis scale auto-adjusts
