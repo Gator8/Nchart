@@ -1,7 +1,6 @@
 <?php
 // Parse the ini file
 $ini_array = parse_ini_file("Nestphp.ini");
-define("DEFAULT_LOG","load.log");
 
 $db_name=$ini_array["db_name"];
 $db_server=$ini_array["db_server"];
@@ -15,6 +14,25 @@ $pe_scale=$ini_array["pe_scale"];
 $nest_table = $ini_array["db_table"];
 $tzone = $ini_array["location_text"];
 
+$show_ind=$ini_array["show_current"];
+$show_pws=$ini_array["show_pws"];
+$show_precip=$ini_array["show_precip"];
+
+$tc_ctemp=$ini_array["current_temp"];
+$tc_ttemp=$ini_array["target_temp"];
+$tc_otemp=$ini_array["outdoor_temp"];
+$tc_acon=$ini_array["ac_on"];
+$tc_heaton=$ini_array["heat_on"];
+$tc_aaway=$ini_array["auto_away"];
+$tc_fon=$ini_array["fan_on"];
+$tc_leaf=$ini_array["leaf_earn"];
+
+$i_hc_mode=$ini_array["heat_cool_mode"];
+$i_f_mode=$ini_array["fan_mode"];
+$i_leaf=$ini_array["leaf"];
+// --------------------------------
+
+define("DEFAULT_LOG","load.log");
 if ($t_scale==="c") {
     $tmode = "Celsius";
     $t_min=-30;
@@ -180,8 +198,9 @@ if (!$db_selected) {
         $g_p_trend = "steelseries.TrendState.STEADY";
     }
 
-    echo '<div id="wrapper" style="width:1000px;margin:0 auto;">
-      <table border=0>
+    echo '<div id="wrapper" style="width:1000px;margin:0 auto;">';
+
+    if ($show_ind == '1') {echo '      <table border=0>
       <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
       <tr><td colspan=6>
              <canvas id="canvas7" width="35" height="25"></canvas>AC/Heat Status
@@ -196,8 +215,9 @@ if (!$db_selected) {
          <td><canvas id="canvas5" width="175" height="175"></canvas></td>
          <td><canvas id="canvas6" width="175" height="175"></canvas></td>
       </tr>
-      </table>
-<p>
+      </table>';}
+
+      echo '<p>
       <div style="width:1100px">TEMPERATURE</div>
       <div id="temperature" style="width:1000px;height:500px;"></div>
       <div id="navigation" style="width:500px;height:60px;"><BR/>
@@ -219,68 +239,95 @@ if (!$db_selected) {
       <div style="width:500px;float:right;">BATTERY LEVEL</div>
       <div id="humidity" style="float:left;width:500px;height:250px;"></div>
       <div id="placeholder" style="float:right;width:500px;height:250px;"></div>
-      <div style="width:1000px;height:150px;">&nbsp;</div>
+      <div style="width:1000px;height:150px;">&nbsp;</div>';
+      if ($show_pws == '1') {echo '
       <div style="width:1000px;height:150px;">PRESSURE & WIND SPEED</div>
-      <div id="pressure" style="float:left;width:1000px;height:150px;"></div>
+      <div id="pressure" style="float:left;width:1000px;height:150px;"></div>';
+      }
+      if ($show_precip == '1') {echo '
       <div style="width:1000px;height:175px;">PRECIPITATION</div>
-      <div id="precip" style="float:left;width:1000px;height:150px;"></div>
-
+      <div id="precip" style="float:left;width:1000px;height:150px;"></div>';
+      }
+   echo '
    </div>
    <div id="placeholder" style="width:50%;height:300px;"></div>
    ';
     // TEMPERATURE
-    $query = "SELECT ddate, current_temperature, target_temperature, z_temperature, auto_away, hvac_heater_state, hvac_ac_state, hvac_fan_state, leaf FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-    $lresult = write_log("Query: " . $query);
+    // build query based on INI entries
+    $query="SELECT ddate";
+    if ($tc_ctemp == '1') {$query = $query .',current_temperature';}
+    if ($tc_ttemp == '1') {$query = $query .',target_temperature';}
+    if ($tc_otemp == '1') {$query = $query .',z_temperature';}
+    if ($tc_aaway == '1')  {$query = $query .',auto_away';}
+    if ($tc_heaton == '1') {$query = $query .',hvac_heater_state';}
+    if ($tc_acon == '1') {$query = $query .',hvac_ac_state';}
+    if ($tc_fon == '1')   {$query = $query .',hvac_fan_state';}
+    if ($tc_leaf == '1')  {$query = $query .',leaf';}
+    $query = $query . ' FROM ' . $nest_table . ' WHERE ddate > ' . $targetdate;
+    
+    //$lresult = write_log("Query: " . $query);
     $result = mysql_query($query);
     $num_rows = mysql_num_rows($result);
     $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-    $lresult = write_log("Query: " . $query);
-    $lresult = write_log("Rows Returned: " . $num_rows);
+    //$lresult = write_log("Query: " . $query);
+    //$lresult = write_log("Rows Returned: " . $num_rows);
     $result2 = mysql_query($query);
     while($row = mysql_fetch_assoc($result))
     {
-        $dataseta[] = array($row['ddate']*1000,$row['current_temperature']);
-        $datasetb[] = array($row['ddate']*1000,$row['target_temperature'],);
-        $datasetc[] = array($row['ddate']*1000,$row['z_temperature']);
-        $datasetd[] = array($row['ddate']*1000,$row['auto_away']);
-        if ($row['hvac_heater_state']=='False') {
-            $h_state = 0;
-        } else {
-            $h_state = .25;
+        if ($tc_ctemp == '1') {$dataseta[] = array($row['ddate']*1000,$row['current_temperature']);}
+        if ($tc_ttemp == '1') {$datasetb[] = array($row['ddate']*1000,$row['target_temperature'],);}
+        if ($tc_otemp == '1') {$datasetc[] = array($row['ddate']*1000,$row['z_temperature']);}
+        if ($tc_aaway == '1')  {$datasetd[] = array($row['ddate']*1000,$row['auto_away']);}
+        if ($tc_fon == '1')   {
+            if ($row['hvac_fan_state']=='False') {
+                $f_state = 0;
+            } else {
+                $f_state = .25;
+            }
+            $datasete[] = array($row['ddate']*1000,$f_state);
         }
-        if ($row['hvac_ac_state']=='False') {
-            $c_state = 0;
-        } else {
-            $c_state = .25;
+
+        if ($tc_acon == '1') {
+            if ($row['hvac_ac_state']=='False') {
+                $c_state = 0;
+            } else {
+                $c_state = .25;
+            }
+            $datasetf[] = array($row['ddate']*1000,$c_state);
         }
-        if ($row['hvac_fan_state']=='False') {
-            $f_state = 0;
-        } else {
-            $f_state = .25;
+
+        if ($tc_leaf == '1')  {
+            if ($row['leaf']=='False') {
+                $l_state = 0;
+            } else {
+                $l_state = .25;
+            }
+            $datasetg[] = array($row['ddate']*1000,$l_state);
         }
-        if ($row['leaf']=='False') {
-            $l_state = 0;
-        } else {
-            $l_state = .25;
+
+        if ($tc_heaton == '1') {
+            if ($row['hvac_heater_state']=='False') {
+                $h_state = 0;
+            } else {
+                $h_state = .25;
+            }
+            $dataseth[] = array($row['ddate']*1000,$h_state);
         }
-        $datasete[] = array($row['ddate']*1000,$f_state);
-        $datasetf[] = array($row['ddate']*1000,$c_state);
-        $datasetg[] = array($row['ddate']*1000,$l_state);
-        $dataseth[] = array($row['ddate']*1000,$h_state);
     }
+
     while($row = mysql_fetch_assoc($result2))
     {
         $t_f_min=$row['min_temp']-5;
         $t_f_max=$row['max_temp']+5;
     }
-    $final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);
-    $final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);
-    $final_temp_c = json_encode(($datasetc),JSON_NUMERIC_CHECK);
-    $final_temp_d = json_encode(($datasetd),JSON_NUMERIC_CHECK);
-    $final_temp_e = json_encode(($datasete));
-    $final_temp_f = json_encode(($datasetf));
-    $final_temp_g = json_encode(($datasetg));
-    $final_temp_h = json_encode(($dataseth));
+    if ($tc_ctemp == '1') {$final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);}
+    if ($tc_ttemp == '1') {$final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);}
+    if ($tc_otemp == '1') {$final_temp_c = json_encode(($datasetc),JSON_NUMERIC_CHECK);}
+    if ($tc_aaway == '1')  {$final_temp_d = json_encode(($datasetd),JSON_NUMERIC_CHECK);}
+    if ($tc_fon == '1')   {$final_temp_e = json_encode(($datasete));}
+    if ($tc_acon == '1') {$final_temp_f = json_encode(($datasetf));}
+    if ($tc_leaf == '1')  {$final_temp_g = json_encode(($datasetg));}
+    if ($tc_heaton == '1') {$final_temp_h = json_encode(($dataseth));}
     $bdate = new DateTime();
 
     // BATTERY_LEVEL
@@ -373,8 +420,8 @@ if (!$db_selected) {
                 },
                 tooltip:true
           }
-     );
-
+     );';
+   if ($show_pws == '1') {echo '
      var pressure_a = ' . $final_pres_a . ';
      var pressure_b = ' . $final_pres_b . ';
      $.plot("#pressure",[
@@ -409,8 +456,8 @@ if (!$db_selected) {
                 },
               colors: ["#2E8ADB", "#2EDB76","#A3D0F7"],
           }
-     );
-
+     );';}
+   if ($show_precip == '1') {echo '
      var precip_a = ' . $final_precip . ';
      $.plot("#precip",[
      {label: "Precipitation", data: precip_a, lines:{fill:.25, lineWidth:1}},
@@ -439,25 +486,27 @@ if (!$db_selected) {
               colors: ["#2E8ADB"],
           }
      );
+     ';}
 
-     var temp_a = ' . $final_temp_a . ';
-     var temp_b = ' . $final_temp_b . ';
-     var temp_c = ' . $final_temp_c . ';
-     var temp_d = ' . $final_temp_d . ';
-     var temp_e = ' . $final_temp_e . ';
-     var temp_f = ' . $final_temp_f . ';
-     var temp_g = ' . $final_temp_g . ';
-     var temp_h = ' . $final_temp_h . ';
-     $.plot("#temperature",[
-     {label: "Current Temp", data: temp_a},
-     {label: "Target Temp", data: temp_b},
-     {label: "Outdoor Temp", data: temp_c},
-     {label: "Auto Away", data: temp_d, yaxis: 2, lines:{fill:.25, lineWidth:1}},
-     {label: "Fan on", data: temp_e, yaxis: 3, lines:{fill:.15, lineWidth:1}},
-     {label: "A/C on", data: temp_f, yaxis: 3, lines:{fill:.15, lineWidth:1}},
-     {label: "Leaf", data: temp_g, yaxis: 3, lines:{fill:.30, lineWidth:1}},
-     {label: "Heat On", data: temp_h, yaxis: 3, lines:{fill:.15, lineWidth:1}},
-     ],
+     if ($tc_ctemp == '1')  {echo "     var temp_a = $final_temp_a;\r\n";}
+     if ($tc_ttemp == '1')  {echo "     var temp_b = $final_temp_b;\r\n";}
+     if ($tc_otemp == '1')  {echo "     var temp_c = $final_temp_c;\r\n";}
+     if ($tc_aaway == '1')  {echo "     var temp_d = $final_temp_d;\r\n";}
+     if ($tc_fon == '1')    {echo "     var temp_e = $final_temp_e;\r\n";}
+     if ($tc_acon == '1')   {echo "     var temp_f =  $final_temp_f;\r\n";}
+     if ($tc_leaf == '1')   {echo "     var temp_g = $final_temp_g;\r\n";}
+     if ($tc_heaton == '1') {echo "     var temp_h = $final_temp_h;\r\n";}
+
+     echo '     $.plot("#temperature",[';
+     if ($tc_ctemp == '1')  {echo "     {label: 'Current Temp', data: temp_a},\r\n";}
+     if ($tc_ttemp == '1')  {echo "     {label: 'Target Temp', data: temp_b},\r\n";}
+     if ($tc_otemp == '1')  {echo "     {label: 'Outdoor Temp', data: temp_c},\r\n";}
+     if ($tc_aaway == '1')  {echo "     {label: 'Auto Away', data: temp_d, yaxis: 2, lines:{fill:.25, lineWidth:1}},\r\n";}
+     if ($tc_fon == '1')    {echo "     {label: 'Fan on', data: temp_e, yaxis: 3, lines:{fill:.15, lineWidth:1}},\r\n";}
+     if ($tc_acon == '1')   {echo "     {label: 'A/C on', data: temp_f, yaxis: 3, lines:{fill:.15, lineWidth:1}},\r\n";}
+     if ($tc_leaf == '1')   {echo "     {label: 'Leaf', data: temp_g, yaxis: 3, lines:{fill:.30, lineWidth:1}},\r\n";}
+     if ($tc_heaton == '1') {echo "     {label: 'Heat On', data: temp_h, yaxis: 3, lines:{fill:.15, lineWidth:1}},\r\n";}
+     echo '     ],
           {
                xaxis:  {
                       mode: "time",
@@ -489,7 +538,16 @@ if (!$db_selected) {
                       backgroundOpacity: .75,
                       labelBoxBorderColor: "#000000"
                 },
-                colors: ["#2E8ADB", "#FFA617","#A3D0F7","#ED85FF","#CECECE","#2EAFFF","#2EDB76","#F72556"],
+                colors: [';
+                if ($tc_ctemp == '1')  {echo '"#2E8ADB"';}
+                if ($tc_ttemp == '1')  {echo ',"#FFA617"';}
+                if ($tc_otemp == '1')  {echo ',"#A3D0F7"';}
+                if ($tc_aaway == '1')  {echo ',"#ED85FF"';}
+                if ($tc_fon == '1')    {echo ',"#CECECE"';}
+                if ($tc_acon == '1')   {echo ',"#2EAFFF"';}
+                if ($tc_leaf == '1')   {echo ',"#2EDB76"';}
+                if ($tc_heaton == '1') {echo ',"#F72556"';}
+                echo '],
                 grid: {
                       hoverable: true, 
                 },

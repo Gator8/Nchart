@@ -1,5 +1,14 @@
 Nest Statistics Live
 
+---------- Version 0.6.0 ----------
++ mod Nestphp.ini - add entries to show/hide various portions of the page
+                    [temp_chart] section shows/hides data in the Temperature graph
+                    [indicators] section shows/hides current values (dials and leds)
+                    [graphs] section shows/hides various graphs
+                    in all cases, setting true to false will hide the associated data/graph
++ mod index.php - changes to support show/hide data and graphs
++ mod README.txt - fix typo
+
 ---------- Version 0.5.7 ----------
 + mod index.php - add rudimentary logging
 

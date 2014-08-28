@@ -60,7 +60,7 @@ Step 3 - Install the Flot package at the same level as your Nest.php file.
 Step 4 - Copy steelseries-min.js and tween-min.js to flot directory.
 
 Step 5 - Test the package by running the nchart.php script from a browser.
-         You should get a 3 paned graphic view. Don't wory right away if you
+         You should get a 3 paned graphic view. Don't worry right away if you
          don't see any data yet. You'll need a couple of hours worth of data
          to determine if your graph is working. Be patient.
 
