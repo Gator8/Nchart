@@ -55,11 +55,15 @@ Step 1 - Grab the latest version of Flot Charts.
 
 Step 2 - Grab the latest version of the SteelSeries gauges.
 
-Step 3 - Install the Flot package at the same level as your Nest.php file.
+Step 3 - To show tooltips, grab the latest version of flot.tooltips from https://github.com/krzysu/flot.tooltip
 
-Step 4 - Copy steelseries-min.js and tween-min.js to flot directory.
+Step 4 - Install the Flot package at the same level as your Nest.php file.
 
-Step 5 - Test the package by running the nchart.php script from a browser.
+Step 5 - Copy steelseries-min.js and tween-min.js to flot directory.
+
+Step 6 - Copy jquery.flot.toolip.js to the flot directory.
+
+Step 7 - Test the package by running the nchart.php script from a browser.
          You should get a 3 paned graphic view. Don't worry right away if you
          don't see any data yet. You'll need a couple of hours worth of data
          to determine if your graph is working. Be patient.

@@ -35,10 +35,12 @@ $i_leaf=$ini_array["leaf"];
 define("DEFAULT_LOG","load.log");
 if ($t_scale==="c") {
     $tmode = "Celsius";
+    $tmode_min = "C";
     $t_min=-30;
     $t_max=35;
 } else {
     $tmode = "Fahrenheit";
+    $tmode_min = "F";
     $t_min=-20;
     $t_max=90;
 }
@@ -108,6 +110,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.direction.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.selection.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.js"></script>
     <script language="javascript" type="text/javascript" src="flot/tween-min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/steelseries-min.js"></script>
 </head>
@@ -384,7 +387,19 @@ if (!$db_selected) {
                 yaxis:  {
                       min:3.6,
                       max:4
-                }
+                },
+                grid: {
+                      hoverable: true, 
+                },
+                tooltip:true,
+                tooltipOpts: {
+                    content: "%s at %x was %y V",
+                    xDateFormat: "%m/%d %H:%M",
+                    shifts: {
+                        x: -60,
+                        y: 25
+                    }
+                    }
           }
      );
      var humidity_a = ' . $final_hum_a . ';
@@ -418,7 +433,16 @@ if (!$db_selected) {
                 grid: {
                       hoverable: true, 
                 },
-                tooltip:true
+                tooltip:true,
+                tooltipOpts: {
+                    content: "%s at %x was %y %",
+                    xDateFormat: "%m/%d %H:%M",
+                    shifts: {
+                        x: -60,
+                        y: 25
+                    }
+                    }
+
           }
      );';
    if ($show_pws == '1') {echo '
@@ -451,6 +475,18 @@ if (!$db_selected) {
                       position: "left",
                       axisLabel: "' . $pe_scale . '",
                 }],
+              grid: {
+                      hoverable: true, 
+                },
+              tooltip:true,
+              tooltipOpts: {
+                      content: "%s at %x was %y",
+                      xDateFormat: "%m/%d %H:%M",
+                      shifts: {
+                          x: -60,
+                          y: 25
+                      }
+                },
               legend: { 
                       position: "sw"
                 },
@@ -482,6 +518,18 @@ if (!$db_selected) {
                 },
               legend: { 
                       position: "nw"
+                },
+              grid: {
+                      hoverable: true, 
+                },
+              tooltip:true,
+              tooltipOpts: {
+                      content: "%s at %x was %y ' . $rmode .'",
+                      xDateFormat: "%m/%d %H:%M",
+                      shifts: {
+                          x: -60,
+                          y: 25
+                      }
                 },
               colors: ["#2E8ADB"],
           }
@@ -551,7 +599,15 @@ if (!$db_selected) {
                 grid: {
                       hoverable: true, 
                 },
-                tooltip:true
+                tooltip: true,
+                tooltipOpts: {
+                    content: "%s at %x was %y ' . $tmode_min .'",
+                    xDateFormat: "%m/%d %H:%M",
+                    shifts: {
+                        x: -60,
+                        y: 25
+                    }
+                    }
           }
      );
 });

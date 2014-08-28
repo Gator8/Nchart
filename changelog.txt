@@ -1,5 +1,9 @@
 Nest Statistics Live
 
+---------- Version 0.6.3 ----------
++ mod index.php - enable tooptips for graphs
++ mod README.txt - undate instructions on Data Presentation for displaying tooltips
+
 ---------- Version 0.6.0 ----------
 + mod Nestphp.ini - add entries to show/hide various portions of the page
                     [temp_chart] section shows/hides data in the Temperature graph
