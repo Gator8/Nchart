@@ -1,5 +1,12 @@
 Nest Statistics Live
 
+---------- Version 0.6.4 ----------
++ mod index.php - show 1 decimal place in temperature tooltip
++ mod index.php - precip graph auto scales
++ mod index.php - enable trend indicators on temperature, humidity and wind speed radials
++ mod index.php - add Auto Away LED
++ mod index.php - finish dial section and area color ranges
+
 ---------- Version 0.6.3 ----------
 + mod index.php - enable tooptips for graphs
 + mod README.txt - undate instructions on Data Presentation for displaying tooltips

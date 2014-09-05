@@ -155,8 +155,18 @@ if (!$db_selected) {
         $last_cool_st = $row['hvac_ac_state'];
         $last_date = date('F d, H:i',$row['ddate']);
         $last_leaf = $row['leaf'];
+        $last_aa = $row['auto_away'];
         $last_p_trend= $row['z_pressure_trend'];
         $last_fan_state= $row['hvac_fan_state'];
+    }
+    //GET SECOND LAST RECORD
+    $query = "SELECT * FROM " . $nest_table . " ORDER BY ddate DESC LIMIT 1,1";
+    $result = mysql_query($query);
+    while($row = mysql_fetch_assoc($result))
+    {
+        $second_last_temp_o = $row['z_temperature'];
+        $second_last_hum_o = $row['z_relative_humidity'];
+        $second_last_wind_speed = $row['z_wind_speed'];
     }
 
     //set status led color
@@ -182,16 +192,30 @@ if (!$db_selected) {
     //turn leaf led on
     if ($last_leaf=='True') {
         $leaf_led_on = "true";
+        $leaf_led_col = "GREEN_LED";
     } else {
         $leaf_led_on = "false";
+        $leaf_led_col = "GREEN_LED";
     }
 
     //turn fan led on
     if ($last_fan_state=='True') {
         $fan_led_on = "true";
+        $fan_led_col = "YELLOW_LED";
     } else {
         $fan_led_on = "false";
+        $fan_led_col = "YELLOW_LED";
     }
+
+    //turn aa led on
+    if ($last_aa=='1') {
+        $aa_led_on = "true";
+        $aa_led_col = "MAGENTA_LED";
+    } else {
+        $aa_led_on = "false";
+        $aa_led_col = "MAGENTA_LED";
+    }
+
     //set pressure trend indicator direction
     if ($last_p_trend=='-') {
         $g_p_trend = "steelseries.TrendState.DOWN";
@@ -200,7 +224,34 @@ if (!$db_selected) {
     } else {
         $g_p_trend = "steelseries.TrendState.STEADY";
     }
+    
+    //set temp trend indicator direction
+    if ($last_temp_o < $second_last_temp_o) {
+        $g_t_trend = "steelseries.TrendState.DOWN";
+    } elseif ($last_temp_o > $second_last_temp_o) {
+        $g_t_trend = "steelseries.TrendState.UP";
+    } else {
+        $g_t_trend = "steelseries.TrendState.STEADY";
+    }
 
+    //set hum trend indicator direction
+    if ($last_hum_o < $second_last_hum_o) {
+        $g_h_trend = "steelseries.TrendState.DOWN";
+    } elseif ($last_hum_o > $second_last_hum_o) {
+        $g_h_trend = "steelseries.TrendState.UP";
+    } else {
+        $g_h_trend = "steelseries.TrendState.STEADY";
+    }
+    
+    //set wind trend indicator direction
+    if ($last_wind_speed < $second_last_wind_speed) {
+        $g_w_trend = "steelseries.TrendState.DOWN";
+    } elseif ($last_wind_speed > $second_last_wind_speed) {
+        $g_w_trend = "steelseries.TrendState.UP";
+    } else {
+        $g_w_trend = "steelseries.TrendState.STEADY";
+    }
+    
     echo '<div id="wrapper" style="width:1000px;margin:0 auto;">';
 
     if ($show_ind == '1') {echo '      <table border=0>
@@ -209,6 +260,7 @@ if (!$db_selected) {
              <canvas id="canvas7" width="35" height="25"></canvas>AC/Heat Status
              <canvas id="canvas9" width="35" height="25"></canvas>Fan Status
              <canvas id="canvas8" width="35" height="25"></canvas>Leaf Status
+             <canvas id="canvas10" width="35" height="25"></canvas>Auto Away
       </td></tr>
       <tr>
          <td><canvas id="canvas1" width="175" height="175"></canvas></td>
@@ -271,7 +323,7 @@ if (!$db_selected) {
     //$lresult = write_log("Query: " . $query);
     $result = mysql_query($query);
     $num_rows = mysql_num_rows($result);
-    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip FROM " . $nest_table . " WHERE ddate > " . $targetdate;
     //$lresult = write_log("Query: " . $query);
     //$lresult = write_log("Rows Returned: " . $num_rows);
     $result2 = mysql_query($query);
@@ -322,6 +374,11 @@ if (!$db_selected) {
     {
         $t_f_min=$row['min_temp']-5;
         $t_f_max=$row['max_temp']+5;
+        if ($pn_scale==="metric") {
+                $r_f_max=$row['max_precip']+5;
+            } else {
+                $r_f_max=$row['max_precip']+1;
+            }
     }
     if ($tc_ctemp == '1') {$final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);}
     if ($tc_ttemp == '1') {$final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);}
@@ -480,7 +537,7 @@ if (!$db_selected) {
                 },
               tooltip:true,
               tooltipOpts: {
-                      content: "%s at %x was %y",
+                      content: "%s at %x was %y.1",
                       xDateFormat: "%m/%d %H:%M",
                       shifts: {
                           x: -60,
@@ -511,7 +568,7 @@ if (!$db_selected) {
                 },
               yaxis:  {
                       min:"' . $r_min . '",
-                      max:"' . $r_max . '",
+                      max:"' . $r_f_max . '",
                       show:true,
                       position: "left",
                       axisLabel: "' . $rmode . '",
@@ -524,7 +581,7 @@ if (!$db_selected) {
                 },
               tooltip:true,
               tooltipOpts: {
-                      content: "%s at %x was %y ' . $rmode .'",
+                      content: "%s at %x was %y.2 ' . $rmode .'",
                       xDateFormat: "%m/%d %H:%M",
                       shifts: {
                           x: -60,
@@ -541,7 +598,7 @@ if (!$db_selected) {
      if ($tc_otemp == '1')  {echo "     var temp_c = $final_temp_c;\r\n";}
      if ($tc_aaway == '1')  {echo "     var temp_d = $final_temp_d;\r\n";}
      if ($tc_fon == '1')    {echo "     var temp_e = $final_temp_e;\r\n";}
-     if ($tc_acon == '1')   {echo "     var temp_f =  $final_temp_f;\r\n";}
+     if ($tc_acon == '1')   {echo "     var temp_f = $final_temp_f;\r\n";}
      if ($tc_leaf == '1')   {echo "     var temp_g = $final_temp_g;\r\n";}
      if ($tc_heaton == '1') {echo "     var temp_h = $final_temp_h;\r\n";}
 
@@ -601,7 +658,7 @@ if (!$db_selected) {
                 },
                 tooltip: true,
                 tooltipOpts: {
-                    content: "%s at %x was %y ' . $tmode_min .'",
+                    content: "%s at %x was %y.1 ' . $tmode_min .'",
                     xDateFormat: "%m/%d %H:%M",
                     shifts: {
                         x: -60,
@@ -615,12 +672,51 @@ if (!$db_selected) {
        <script>
         function init(){
              // Define some sections
-             var sections = Array(steelseries.Section(-30, 0, "rgba(0, 0, 220, 0.3)"),
-             steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
-             steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
+             // Temperature ';
+             if ($t_scale==="c") {echo '
+             var Tsections = Array(steelseries.Section(-30, 0, "rgba(0, 0, 220, 0.3)"),
+                                   steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
+                                   steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
+             var Tareas = Array(steelseries.Section(35, 45, "rgba(220, 0, 0, 0.55)"),
+                                steelseries.Section(-30, -20, "rgba(108, 92, 252, 0.55)"));';
+             } else {echo '
+             var Tsections = Array(steelseries.Section(-20, 0, "rgba(0, 0, 220, 0.3)"),
+                                   steelseries.Section(32, 70, "rgba(0, 220, 0, 0.3)"), 
+                                   steelseries.Section(70, 85, "rgba(220, 220, 0, 0.3)"));
+             var Tareas = Array(steelseries.Section(85, 105, "rgba(220, 0, 0, 0.55)"),
+                                steelseries.Section(-20, -10, "rgba(108, 92, 252, 0.55)"));';
+             }
+             echo '             // Pressure';
+             if ($pe_scale==="mb")  {echo '
+             var Pareas = Array(steelseries.Section(970, 980, "rgba(220, 0, 0, 0.55)"),
+                                steelseries.Section(1030, 1040, "rgba(220, 0, 0, 0.55)"));
+             var Psections = Array(steelseries.Section(970, 980, "rgba(0, 0, 220, 0.3)"),
+                                   steelseries.Section(980, 1030, "rgba(0, 220, 0, 0.3)"), 
+                                   steelseries.Section(1030, 1040, "rgba(220, 220, 0, 0.3)"));';
+             } else {echo '
+             var Pareas = Array(steelseries.Section(28.6, 28.9, "rgba(220, 0, 0, 0.55)"),
+                                steelseries.Section(30.5, 30.7, "rgba(220, 0, 0, 0.55)"));
+             var Psections = Array(steelseries.Section(28.6, 28.9, "rgba(0, 0, 220, 0.3)"),
+                                   steelseries.Section(28.9, 30.5, "rgba(0, 220, 0, 0.3)"), 
+                                   steelseries.Section(30.5, 30.7, "rgba(220, 220, 0, 0.3)"));';
+             }
+             echo '             // Wind';
+             if ($s_scale==="kph") {echo '
+             var Wsections = Array(steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
+                                   steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
+             var Wareas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.55)"));';
+             } else {echo '
+             var Wsections = Array(steelseries.Section(0, 12, "rgba(0, 220, 0, 0.3)"), 
+                                   steelseries.Section(12, 45, "rgba(220, 220, 0, 0.3)"));
+             var Wareas = Array(steelseries.Section(45, 100, "rgba(220, 0, 0, 0.55)"));';
+             }
+     echo '
+             var Hsections = Array(steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"),
+                                   steelseries.Section(20, 80, "rgba(220, 220, 0, 0.3)"), 
+                                   steelseries.Section(80, 100, "rgba(220, 0, 0, 0.3)"));
 
              // Define one area
-             var areas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.3)"));
+             var areas = Array(steelseries.Section(80, 100, "rgba(220, 0, 0, 0.55)"));
 
              //default look and feel
              var FD = steelseries.FrameDesign.TILTED_GRAY;
@@ -638,8 +734,8 @@ if (!$db_selected) {
                     "canvas1", {
                        titleString                : "Outdoor Temp",
                        unitString                 : "'. $tmode . '",
-                       section                    : sections,
-                       area                       : areas,
+                       section                    : Tsections,
+                       area                       : Tareas,
                        size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
@@ -661,12 +757,13 @@ if (!$db_selected) {
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
                        degreeScale                : true,
+                       trendVisible               : true,
                     });
              var radial2 = new steelseries.Radial(
                     "canvas2", {
                        titleString                : "Outdoor Humidity",
                        unitString                 : "%",
-                       section                    : sections,
+                       section                    : Hsections,
                        area                       : areas,
                        size                       : 175,
                        thresholdVisible           : false,
@@ -688,14 +785,15 @@ if (!$db_selected) {
                        maxValue                   : 100,
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                       trendVisible               : true,
                     });
              var radial3 = new steelseries.Radial(
                     "canvas3", {
                        gaugeType                  : steelseries.GaugeType.TYPE3,
                        titleString                : "Barometer",
                        unitString                 : "'. $bmode . '",
-                       section                    : sections,
-                       area                       : areas,
+                       section                    : Psections,
+                       area                       : Pareas,
                        size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
@@ -722,8 +820,8 @@ if (!$db_selected) {
                     "canvas4", {
                        titleString                : "WindSpeed",
                        unitString                 : "'. $wmode . '",
-                       section                    : sections,
-                       area                       : areas,
+                       section                    : Wsections,
+                       area                       : Wareas,
                        size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
@@ -744,12 +842,13 @@ if (!$db_selected) {
                        maxValue                   : ' . $ws_max . ',
                        tickLabelOrientation       : steelseries.TickLabelOrientation.HORIZONTAL,
                        labelNumberFormat          : steelseries.LabelNumberFormat.STANDARD,
+                       trendVisible               : true,
                     });
              var radial5 = new steelseries.Compass(
                     "canvas5", {
                        titleString                : "Wind Direction",
-                       section                    : sections,
-                       area                       : areas,
+                       //section                    : sections,
+                       //area                       : areas,
                        size                       : 175,
                        thresholdVisible           : false,
                        minMeasuredValueVisible    : false,
@@ -773,8 +872,8 @@ if (!$db_selected) {
                     "canvas6", {
                        titleString                : "Precipitation",
                        unitString                 : "'. $rmode . '",
-                       section                    : sections,
-                       area                       : areas,
+                       //section                    : sections,
+                       //area                       : areas,
                        width                      : 85,
                        height                     : 185,
                        thresholdVisible           : false,
@@ -801,37 +900,45 @@ if (!$db_selected) {
                     "canvas7", {
                        width                      : 25,
                        height                     : 25,
-                       blink                      : true,
                        glowColor                  : "'. $led_col .'",
                     });
              var led2 = new steelseries.Led(
                     "canvas8", {
                        width                      : 25,
                        height                     : 25,
-                       blink                      : true,
-                       glowColor                  : "'. $leaf_led_col .'",
+                       glowColor                  : "'. $fan_led_col .'",
                     });
                     // need way to show if heater or ac is ON
              var led3 = new steelseries.Led(
                     "canvas9", {
                        width                      : 25,
                        height                     : 25,
-                       blink                      : true,
                        glowColor                  : "'. $leaf_led_col .'",
                     });
+             var led4 = new steelseries.Led(
+                    "canvas10", {
+                       width                      : 25,
+                       height                     : 25,
+                       glowColor                  : "'. $aa_led_col .'",
+                    });
                    radial1.setValueAnimated('. $last_temp_o .');
+                   radial1.setTrend('. $g_t_trend . ');
                    radial2.setValueAnimated('. $last_hum_o .');
+                   radial2.setTrend('. $g_h_trend . ');
                    radial3.setValueAnimated('. $last_pressure .');
                    radial3.setTrend('. $g_p_trend . ');
                    radial4.setValueAnimated('. $last_wind_speed .');
+                   radial4.setTrend('. $g_w_trend . ');
                    radial5.setValueAnimated('. $last_wind_deg .');
                    radial6.setValueAnimated('. $last_precip .');
                    led1.setLedColor(steelseries.LedColor.' . $led_col . ');
-                   led2.setLedColor(steelseries.LedColor.GREEN_LED);
-                   led3.setLedColor(steelseries.LedColor.YELLOW_LED);
+                   led2.setLedColor(steelseries.LedColor.' . $leaf_led_col . ');
+                   led3.setLedColor(steelseries.LedColor.' . $fan_led_col . ');
+                   led4.setLedColor(steelseries.LedColor.' . $aa_led_col . ');
                    led1.blink('. $led_on .');
                    led2.blink('. $leaf_led_on .');
                    led3.blink('. $fan_led_on .');
+                   led4.blink('. $aa_led_on .');
         }
   </script>
    </body>
