@@ -1,5 +1,24 @@
 Nest Statistics Live
 
+---------- Version 0.6.5 ----------
++ add MODIFY.txt - fixes a number of columns that had inappropriate column types
+     NOTE: use this file if you already have a database setup
++ mod NA.txt - fixes a number of columns that had inappropriate column types
++ mod GB.txt - fixes a number of columns that had inappropriate column types
++ mod index.php - autoscale both pressure and wind speed
++ mod index.php - add UV graph
++ mod index.php - add credit for www.wunderground.com
++ mod NA.txt - add new column
++ mod GB.txt - add new column
++ add images/wundergroundLogo_4c_horz.jpg - fro wunderground credit
+
+
+---------- Version 0.6.4 ----------
++ mod NA.txt - change z_precip_today to int instead of varchar to fix autoscaling of precip graph
++ mod GB.txt - change z_precip_today to int instead of varchar to fix autoscaling of precip graph
+
+     NOTE: in already installed databases, use a database admin tool to manually change the z_precip_today data type to int.
+
 ---------- Version 0.6.4 ----------
 + mod index.php - show 1 decimal place in temperature tooltip
 + mod index.php - precip graph auto scales
