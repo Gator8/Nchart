@@ -303,10 +303,6 @@ if (!$db_selected) {
       <div style="width:1000px;height:175px;">PRECIPITATION</div>
       <div id="precip" style="float:left;width:1000px;height:150px;"></div>';
       }
-      if ($show_uv == '1') {echo '
-      <div style="width:1000px;height:175px;">UV</div>
-      <div id="uv" style="float:left;width:1000px;height:150px;"></div>';
-      }
    echo '
    </div>
    <div id="placeholder" style="width:50%;height:300px;"></div>
@@ -327,7 +323,7 @@ if (!$db_selected) {
     //$lresult = write_log("Query: " . $query);
     $result = mysql_query($query);
     $num_rows = mysql_num_rows($result);
-    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip, max(z_wind_speed) as max_wind FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip FROM " . $nest_table . " WHERE ddate > " . $targetdate;
     //$lresult = write_log("Query: " . $query);
     //$lresult = write_log("Rows Returned: " . $num_rows);
     $result2 = mysql_query($query);
@@ -378,7 +374,6 @@ if (!$db_selected) {
     {
         $t_f_min=$row['min_temp']-5;
         $t_f_max=$row['max_temp']+5;
-        $t_w_max=$row['max_wind']+5;
         if ($pn_scale==="metric") {
                 $r_f_max=$row['max_precip']+5;
             } else {
@@ -425,12 +420,10 @@ if (!$db_selected) {
         $dataset3a[] = array($row['ddate']*1000,$row['z_pressure']);
         $dataset3b[] = array($row['ddate']*1000,$row['z_wind_speed'],$row['z_wind_degrees']);
         $dataset3c[] = array($row['ddate']*1000,$row['z_precip_today']);
-        $dataset3d[] = array($row['ddate']*1000,$row['z_UV']);
     }
     $final_pres_a = json_encode(($dataset3a),JSON_NUMERIC_CHECK);
     $final_pres_b = json_encode(($dataset3b),JSON_NUMERIC_CHECK);
     $final_precip = json_encode(($dataset3c),JSON_NUMERIC_CHECK);
-    $final_uv     = json_encode(($dataset3d),JSON_NUMERIC_CHECK);
     
     //now craft the html
    echo '<script type="text/javascript">
@@ -462,44 +455,6 @@ if (!$db_selected) {
                     shifts: {
                         x: -60,
                         y: 25
-                    }
-                    }
-          }
-     );
-     var UVR = ' . $final_uv . ';
-     $.plot("#uv",[{label: "UV Reading", data: UVR}],
-          {
-               xaxis:  {
-                      mode: "time",
-                      timeformat: "%m/%d/%y",
-                      timezone: "browser",
-                      minTickSize: [1, "day"],
-                      axisLabelUseCanvas: true,
-                      axisLabelFontSizePixels: 12,
-                      axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
-                      axisLabelPadding: 5
-                },
-                yaxis:  {
-                      min:0,
-                      max:9
-                },
-                grid: {
-                      hoverable: true, 
-                },
-                colors: ["#8E04BD"],
-                bars: {
-                     show:true,
-                     align: "center",
-                     barWidth: 10*1000*60,
-                     lineWidth: 1
-                },
-                tooltip:true,
-                tooltipOpts: {
-                    content: "%s at %x was %y V",
-                    xDateFormat: "%m/%d %H:%M",
-                    shifts: {
-                        x: -30,
-                        y: -40
                     }
                     }
           }
@@ -567,13 +522,13 @@ if (!$db_selected) {
                 },
               yaxes:  [{
                       min:0,
-                      max: '. $t_w_max .',
+                      max:100,
                       show:true,
                       position: "right",
                 },
               {
-                      min: '. $baro_min .',
-                      max: '. $baro_max .',
+                      min:950,
+                      max:1070,
                       position: "left",
                       axisLabel: "' . $pe_scale . '",
                 }],
@@ -670,20 +625,17 @@ if (!$db_selected) {
                 },
                 yaxes: [{
                       min:'.$t_f_min.',
-                      max:'.$t_f_max.',
-                      axisLabel: "' . $tmode_min . '"
+                      max:'.$t_f_max.'
                 },
                 {
                       min:0,
                       max:1,
-                      show:false,
-                      axisLabel: ""
+                      show:false
                 },
                 {
                       min:0,
                       max:1,
-                      show:false,
-                      axisLabel: ""
+                      show:false
                 }],
                 legend: { 
                       position: "sw",
@@ -706,14 +658,13 @@ if (!$db_selected) {
                 },
                 tooltip: true,
                 tooltipOpts: {
-                    //content: "%s at %x was %y.1 ' . $tmode_min .'",
-                    content: "%s at %x was %y.1",
+                    content: "%s at %x was %y.1 ' . $tmode_min .'",
                     xDateFormat: "%m/%d %H:%M",
                     shifts: {
                         x: -60,
                         y: 25
                     }
-                 }
+                    }
           }
      );
 });
@@ -727,15 +678,13 @@ if (!$db_selected) {
                                    steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
                                    steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
              var Tareas = Array(steelseries.Section(35, 45, "rgba(220, 0, 0, 0.55)"),
-                                steelseries.Section(-30, -20, "rgba(108, 92, 252, 0.55)"));
-                                ';
+                                steelseries.Section(-30, -20, "rgba(108, 92, 252, 0.55)"));';
              } else {echo '
              var Tsections = Array(steelseries.Section(-20, 0, "rgba(0, 0, 220, 0.3)"),
                                    steelseries.Section(32, 70, "rgba(0, 220, 0, 0.3)"), 
                                    steelseries.Section(70, 85, "rgba(220, 220, 0, 0.3)"));
              var Tareas = Array(steelseries.Section(85, 105, "rgba(220, 0, 0, 0.55)"),
-                                steelseries.Section(-20, -10, "rgba(108, 92, 252, 0.55)"));
-                                ';
+                                steelseries.Section(-20, -10, "rgba(108, 92, 252, 0.55)"));';
              }
              echo '             // Pressure';
              if ($pe_scale==="mb")  {echo '
@@ -743,27 +692,23 @@ if (!$db_selected) {
                                 steelseries.Section(1030, 1040, "rgba(220, 0, 0, 0.55)"));
              var Psections = Array(steelseries.Section(970, 980, "rgba(0, 0, 220, 0.3)"),
                                    steelseries.Section(980, 1030, "rgba(0, 220, 0, 0.3)"), 
-                                   steelseries.Section(1030, 1040, "rgba(220, 220, 0, 0.3)"));
-                                   ';
+                                   steelseries.Section(1030, 1040, "rgba(220, 220, 0, 0.3)"));';
              } else {echo '
              var Pareas = Array(steelseries.Section(28.6, 28.9, "rgba(220, 0, 0, 0.55)"),
                                 steelseries.Section(30.5, 30.7, "rgba(220, 0, 0, 0.55)"));
              var Psections = Array(steelseries.Section(28.6, 28.9, "rgba(0, 0, 220, 0.3)"),
                                    steelseries.Section(28.9, 30.5, "rgba(0, 220, 0, 0.3)"), 
-                                   steelseries.Section(30.5, 30.7, "rgba(220, 220, 0, 0.3)"));
-                                   ';
+                                   steelseries.Section(30.5, 30.7, "rgba(220, 220, 0, 0.3)"));';
              }
              echo '             // Wind';
              if ($s_scale==="kph") {echo '
              var Wsections = Array(steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
                                    steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
-             var Wareas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.55)"));
-             ';
+             var Wareas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.55)"));';
              } else {echo '
              var Wsections = Array(steelseries.Section(0, 12, "rgba(0, 220, 0, 0.3)"), 
                                    steelseries.Section(12, 45, "rgba(220, 220, 0, 0.3)"));
-             var Wareas = Array(steelseries.Section(45, 100, "rgba(220, 0, 0, 0.55)"));
-             ';
+             var Wareas = Array(steelseries.Section(45, 100, "rgba(220, 0, 0, 0.55)"));';
              }
      echo '
              var Hsections = Array(steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"),
@@ -996,7 +941,6 @@ if (!$db_selected) {
                    led4.blink('. $aa_led_on .');
         }
   </script>
-  <h6><center>Some data courtesy of <a href="http://www.wunderground.com" target="_blank"><img src="images/wundergroundLogo_4c_horz.jpg" width="90"></a></center></h6>
    </body>
 </html>';
 
