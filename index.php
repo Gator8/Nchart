@@ -15,8 +15,11 @@ $nest_table = $ini_array["db_table"];
 $tzone = $ini_array["location_text"];
 
 $show_ind=$ini_array["show_current"];
+//$show_dia=$ini_array["show_dials"];
+//$show_gra=$ini_array["show_graphs"];
 $show_pws=$ini_array["show_pws"];
 $show_precip=$ini_array["show_precip"];
+$show_uv=$ini_array["show_uv"];
 
 $tc_ctemp=$ini_array["current_temp"];
 $tc_ttemp=$ini_array["target_temp"];
@@ -180,7 +183,7 @@ if (!$db_selected) {
         $bkgnd = "purple";
         $led_col = "MAGENTA_LED";
     }
-
+    $led_on = "false";
     //turn temp led on
     if ($last_heat_st=='True') {
         $led_on = "true";
@@ -466,7 +469,8 @@ if (!$db_selected) {
                     }
                     }
           }
-     );
+     );';
+   if ($show_uv == '1') {echo '
      var UVR = ' . $final_uv . ';
      $.plot("#uv",[{label: "UV Reading", data: UVR}],
           {
@@ -502,9 +506,11 @@ if (!$db_selected) {
                         x: -30,
                         y: -40
                     }
-                    }
+                }
           }
-     );
+     );';
+             }
+     echo '
      var humidity_a = ' . $final_hum_a . ';
      var humidity_b = ' . $final_hum_b . ';
      var humidity_c = ' . $final_hum_c . ';
@@ -783,8 +789,9 @@ if (!$db_selected) {
              var KT = steelseries.KnobType.STANDARD_KNOB;
              var KS = steelseries.KnobStyle.SILVER;
              var LC = steelseries.LcdColor.STANDARD;
-             var CD = steelseries.ColorDef.BLUE;
+             var CD = steelseries.ColorDef.BLUE;';
 
+        if ($show_ind==="1") {echo '
              // Create one radial gauge
              var radial1 = new steelseries.Radial(
                     "canvas1", {
@@ -995,6 +1002,9 @@ if (!$db_selected) {
                    led2.blink('. $leaf_led_on .');
                    led3.blink('. $fan_led_on .');
                    led4.blink('. $aa_led_on .');
+';
+             }
+echo '
         }
   </script>
   <h6><center>Some data courtesy of <a href="http://www.wunderground.com" target="_blank"><img src="images/wundergroundLogo_4c_horz.jpg" width="90"></a></center></h6>
