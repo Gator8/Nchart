@@ -1,5 +1,9 @@
 Nest Statistics Live
 
+---------- Version 0.6.8 ----------
++ mod index.php - ablility to switch humidity/battery graphs on and off
++ mod Nestphp.ini - add switch to show/hide humidity/battery
+
 ---------- Version 0.6.7 ----------
 + mod Nest.php - remove plaintext credentials from log file.
 

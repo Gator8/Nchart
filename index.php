@@ -20,6 +20,7 @@ $show_ind=$ini_array["show_current"];
 $show_pws=$ini_array["show_pws"];
 $show_precip=$ini_array["show_precip"];
 $show_uv=$ini_array["show_uv"];
+$show_humbat=$ini_array["show_humbat"];
 
 $tc_ctemp=$ini_array["current_temp"];
 $tc_ttemp=$ini_array["target_temp"];
@@ -291,13 +292,16 @@ if (!$db_selected) {
             <td><form action="index.php" method="get"><input type="hidden" name="days" value="364"><input type="submit" value="1 year"></form></td>
          </TR>
       </table>
-      </div>
+      </div>';
+      if ($show_humbat == '1') {echo '
       <div style="width:1000px;height:10px;">&nbsp;</div>
       <div style="width:500px;float:left;">HUMIDITY</div>
       <div style="width:500px;float:right;">BATTERY LEVEL</div>
       <div id="humidity" style="float:left;width:500px;height:250px;"></div>
       <div id="placeholder" style="float:right;width:500px;height:250px;"></div>
-      <div style="width:1000px;height:150px;">&nbsp;</div>';
+      <div style="width:1000px;height:150px;">&nbsp;</div>
+      
+      ';}
       if ($show_pws == '1') {echo '
       <div style="width:1000px;height:150px;">PRESSURE & WIND SPEED</div>
       <div id="pressure" style="float:left;width:1000px;height:150px;"></div>';
@@ -311,8 +315,9 @@ if (!$db_selected) {
       <div id="uv" style="float:left;width:1000px;height:150px;"></div>';
       }
    echo '
+   <div id="plaeholder" style="width:50%;height:300px;"></div>
    </div>
-   <div id="placeholder" style="width:50%;height:300px;"></div>
+   
    ';
     // TEMPERATURE
     // build query based on INI entries
@@ -399,28 +404,30 @@ if (!$db_selected) {
     if ($tc_heaton == '1') {$final_temp_h = json_encode(($dataseth));}
     $bdate = new DateTime();
 
-    // BATTERY_LEVEL
-    $query = "SELECT ddate, battery_level FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-    $result = mysql_query($query);
-    while($row = mysql_fetch_assoc($result))
-    {
-        $dataset1[] = array($row['ddate']*1000,$row['battery_level']);
-    }
-    $final_misc = json_encode(($dataset1),JSON_NUMERIC_CHECK);
+    if ($show_humbat == '1') {
+       // BATTERY_LEVEL
+       $query = "SELECT ddate, battery_level FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+       $result = mysql_query($query);
+       while($row = mysql_fetch_assoc($result))
+       {
+           $dataset1[] = array($row['ddate']*1000,$row['battery_level']);
+       }
+       $final_misc = json_encode(($dataset1),JSON_NUMERIC_CHECK);
 
-    // HUMIDITY
-    $query = "SELECT ddate, current_humidity, target_humidity, z_relative_humidity FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-    $result = mysql_query($query);
-    while($row = mysql_fetch_assoc($result))
-    {
-        $dataset2a[] = array($row['ddate']*1000,$row['current_humidity']);
-        $dataset2b[] = array($row['ddate']*1000,$row['target_humidity']);
-        $dataset2c[] = array($row['ddate']*1000,$row['z_relative_humidity']);
+       // HUMIDITY
+       $query = "SELECT ddate, current_humidity, target_humidity, z_relative_humidity FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+       $result = mysql_query($query);
+       while($row = mysql_fetch_assoc($result))
+       {
+           $dataset2a[] = array($row['ddate']*1000,$row['current_humidity']);
+           $dataset2b[] = array($row['ddate']*1000,$row['target_humidity']);
+           $dataset2c[] = array($row['ddate']*1000,$row['z_relative_humidity']);
+       }
+       $final_hum_a = json_encode(($dataset2a),JSON_NUMERIC_CHECK);
+       $final_hum_b = json_encode(($dataset2b),JSON_NUMERIC_CHECK);
+       $final_hum_c = json_encode(($dataset2c),JSON_NUMERIC_CHECK);
     }
-    $final_hum_a = json_encode(($dataset2a),JSON_NUMERIC_CHECK);
-    $final_hum_b = json_encode(($dataset2b),JSON_NUMERIC_CHECK);
-    $final_hum_c = json_encode(($dataset2c),JSON_NUMERIC_CHECK);
-    
+
     // PRESSURE WIND DIRECTION UV AND PRECIP
     $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_precip_today, z_UV FROM " . $nest_table . " WHERE ddate > " . $targetdate;
     $result = mysql_query($query);
@@ -438,7 +445,8 @@ if (!$db_selected) {
     
     //now craft the html
    echo '<script type="text/javascript">
-    $(function () {
+     $(function () {';
+     if ($show_humbat == '1') {echo '
      var battery = ' . $final_misc . ';
      $.plot("#placeholder",[{label: "voltage", data: battery}],
           {
@@ -469,48 +477,7 @@ if (!$db_selected) {
                     }
                     }
           }
-     );';
-   if ($show_uv == '1') {echo '
-     var UVR = ' . $final_uv . ';
-     $.plot("#uv",[{label: "UV Reading", data: UVR}],
-          {
-               xaxis:  {
-                      mode: "time",
-                      timeformat: "%m/%d/%y",
-                      timezone: "browser",
-                      minTickSize: [1, "day"],
-                      axisLabelUseCanvas: true,
-                      axisLabelFontSizePixels: 12,
-                      axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
-                      axisLabelPadding: 5
-                },
-                yaxis:  {
-                      min:0,
-                      max:9
-                },
-                grid: {
-                      hoverable: true, 
-                },
-                colors: ["#8E04BD"],
-                bars: {
-                     show:true,
-                     align: "center",
-                     barWidth: 10*1000*60,
-                     lineWidth: 1
-                },
-                tooltip:true,
-                tooltipOpts: {
-                    content: "%s at %x was %y V",
-                    xDateFormat: "%m/%d %H:%M",
-                    shifts: {
-                        x: -30,
-                        y: -40
-                    }
-                }
-          }
-     );';
-             }
-     echo '
+     );
      var humidity_a = ' . $final_hum_a . ';
      var humidity_b = ' . $final_hum_b . ';
      var humidity_c = ' . $final_hum_c . ';
@@ -551,9 +518,48 @@ if (!$db_selected) {
                         y: 25
                     }
                     }
-
+          }
+     );';}
+   if ($show_uv == '1') {echo '
+     var UVR = ' . $final_uv . ';
+     $.plot("#uv",[{label: "UV Reading", data: UVR}],
+          {
+               xaxis:  {
+                      mode: "time",
+                      timeformat: "%m/%d/%y",
+                      timezone: "browser",
+                      minTickSize: [1, "day"],
+                      axisLabelUseCanvas: true,
+                      axisLabelFontSizePixels: 12,
+                      axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
+                      axisLabelPadding: 5
+                },
+                yaxis:  {
+                      min:0,
+                      max:9
+                },
+                grid: {
+                      hoverable: true, 
+                },
+                colors: ["#8E04BD"],
+                bars: {
+                     show:true,
+                     align: "center",
+                     barWidth: 10*1000*60,
+                     lineWidth: 1
+                },
+                tooltip:true,
+                tooltipOpts: {
+                    content: "%s at %x was %y V",
+                    xDateFormat: "%m/%d %H:%M",
+                    shifts: {
+                        x: -30,
+                        y: -40
+                    }
+                }
           }
      );';
+     }
    if ($show_pws == '1') {echo '
      var pressure_a = ' . $final_pres_a . ';
      var pressure_b = ' . $final_pres_b . ';
@@ -772,7 +778,7 @@ if (!$db_selected) {
              var Wareas = Array(steelseries.Section(45, 100, "rgba(220, 0, 0, 0.55)"));
              ';
              }
-     echo '
+             echo '
              var Hsections = Array(steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"),
                                    steelseries.Section(20, 80, "rgba(220, 220, 0, 0.3)"), 
                                    steelseries.Section(80, 100, "rgba(220, 0, 0, 0.3)"));
