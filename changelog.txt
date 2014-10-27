@@ -1,5 +1,8 @@
 Nest Statistics Live
 
+---------- Version 0.6.7 ----------
++ mod Nest.php - remove plaintext credentials from log file.
+
 ---------- Version 0.6.6 ----------
 + mod index.php - showing/hiding different elements caused script errors
 

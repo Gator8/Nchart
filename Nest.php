@@ -44,7 +44,8 @@ if (!empty($ini_array['wunderground_key'])) {
 // fix path to python executable as well as path to py file
 $command = 'python nest.py --user ' .$ini_array["N_user"]. ' --password ' .$ini_array["N_pass"]. ' show';
 
-$lresult = write_log("PYTHON Command: " . $command);
+$command_l = 'python nest.py --user XXXXXXX --password XXXXXXX show';
+$lresult = write_log("PYTHON Command: " . $command_l);
 $temp = exec($command, $output);
 
 // number of elements in output
