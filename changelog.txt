@@ -1,5 +1,9 @@
 Nest Statistics Live
 
+---------- Version 0.7.0 ----------
++ mod index.php - data categories are now selectable. Downside is that the graph itself has to become smaller to fit the list.
++ mod index.php - update wind speed radial gauge color gradient
+
 ---------- Version 0.6.8 ----------
 + mod index.php - ablility to switch humidity/battery graphs on and off
 + mod Nestphp.ini - add switch to show/hide humidity/battery

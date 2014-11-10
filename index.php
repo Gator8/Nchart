@@ -31,9 +31,9 @@ $tc_aaway=$ini_array["auto_away"];
 $tc_fon=$ini_array["fan_on"];
 $tc_leaf=$ini_array["leaf_earn"];
 
-$i_hc_mode=$ini_array["heat_cool_mode"];
-$i_f_mode=$ini_array["fan_mode"];
-$i_leaf=$ini_array["leaf"];
+//$i_hc_mode=$ini_array["heat_cool_mode"];
+//$i_f_mode=$ini_array["fan_mode"];
+//$i_leaf=$ini_array["leaf"];
 // --------------------------------
 
 define("DEFAULT_LOG","load.log");
@@ -97,7 +97,7 @@ if(isset($_GET['days'])){
         $bdays = $_GET['days'];
     }
    } else {
-      $bdays = 7;
+      $bdays = 3;
 }
 $lresult = write_log("No. of Days: " . $bdays);
 
@@ -105,6 +105,26 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
  <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Nest Statistics for the last ' . $bdays . ' days!</title>
+    <style>
+        #miniature {
+            float: left; 
+            margin-left: 20px; 
+            margin-top: 50px;
+        }
+
+        #overviewLegend {
+            margin-left: 10px;
+        }
+
+        #overviewLegend li > div {
+            display: inline-block;
+            margin-right: 4px;
+        }
+
+        #overviewLegend li label {
+            margin-left: 3px;
+        }
+    </style>
     <script language="javascript" type="text/javascript" src="flot/jquery.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.resize.min.js"></script>
@@ -277,8 +297,14 @@ if (!$db_selected) {
       </table>';}
 
       echo '<p>
-      <div style="width:1100px">TEMPERATURE</div>
-      <div id="temperature" style="width:1000px;height:500px;"></div>
+      <div style="width:1300px">TEMPERATURE</div>
+      <div style="display:table-row;width:100%;overflow:hidden;position:relative;"> 
+          <div id="temperature" style="display:table-cell;width:1100px;height:500px;"></div>
+          <div id="miniature" style="display:table-cell;width:200px;right:100px">
+             <ul id="overviewLegend">
+             </ul>
+          </div>
+      </div>
       <div id="navigation" style="width:500px;height:60px;"><BR/>
       <table width=100%>
          <tr>
@@ -315,10 +341,9 @@ if (!$db_selected) {
       <div id="uv" style="float:left;width:1000px;height:150px;"></div>';
       }
    echo '
-   <div id="plaeholder" style="width:50%;height:300px;"></div>
-   </div>
-   
-   ';
+   <div id="placeholder" style="width:50%;height:300px;"></div>
+   </div>';
+
     // TEMPERATURE
     // build query based on INI entries
     $query="SELECT ddate";
@@ -394,13 +419,13 @@ if (!$db_selected) {
             }
         
     }
-    if ($tc_ctemp == '1') {$final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);}
-    if ($tc_ttemp == '1') {$final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);}
-    if ($tc_otemp == '1') {$final_temp_c = json_encode(($datasetc),JSON_NUMERIC_CHECK);}
+    if ($tc_ctemp == '1')  {$final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);}
+    if ($tc_ttemp == '1')  {$final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);}
+    if ($tc_otemp == '1')  {$final_temp_c = json_encode(($datasetc),JSON_NUMERIC_CHECK);}
     if ($tc_aaway == '1')  {$final_temp_d = json_encode(($datasetd),JSON_NUMERIC_CHECK);}
-    if ($tc_fon == '1')   {$final_temp_e = json_encode(($datasete));}
-    if ($tc_acon == '1') {$final_temp_f = json_encode(($datasetf));}
-    if ($tc_leaf == '1')  {$final_temp_g = json_encode(($datasetg));}
+    if ($tc_fon == '1')    {$final_temp_e = json_encode(($datasete));}
+    if ($tc_acon == '1')   {$final_temp_f = json_encode(($datasetf));}
+    if ($tc_leaf == '1')   {$final_temp_g = json_encode(($datasetg));}
     if ($tc_heaton == '1') {$final_temp_h = json_encode(($dataseth));}
     $bdate = new DateTime();
 
@@ -426,26 +451,133 @@ if (!$db_selected) {
        $final_hum_a = json_encode(($dataset2a),JSON_NUMERIC_CHECK);
        $final_hum_b = json_encode(($dataset2b),JSON_NUMERIC_CHECK);
        $final_hum_c = json_encode(($dataset2c),JSON_NUMERIC_CHECK);
-    }
+    };
 
-    // PRESSURE WIND DIRECTION UV AND PRECIP
-    $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_precip_today, z_UV FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-    $result = mysql_query($query);
-    while($row = mysql_fetch_assoc($result))
-    {
-        $dataset3a[] = array($row['ddate']*1000,$row['z_pressure']);
-        $dataset3b[] = array($row['ddate']*1000,$row['z_wind_speed'],$row['z_wind_degrees']);
-        $dataset3c[] = array($row['ddate']*1000,$row['z_precip_today']);
-        $dataset3d[] = array($row['ddate']*1000,$row['z_UV']);
-    }
-    $final_pres_a = json_encode(($dataset3a),JSON_NUMERIC_CHECK);
-    $final_pres_b = json_encode(($dataset3b),JSON_NUMERIC_CHECK);
-    $final_precip = json_encode(($dataset3c),JSON_NUMERIC_CHECK);
-    $final_uv     = json_encode(($dataset3d),JSON_NUMERIC_CHECK);
-    
+    if ($show_pws == '1' && $show_uv == '1' && $show_precip == '1') {
+       // PRESSURE WIND DIRECTION UV AND PRECIP
+       $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_precip_today, z_UV FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+       $result = mysql_query($query);
+       while($row = mysql_fetch_assoc($result))
+       {
+           $dataset3a[] = array($row['ddate']*1000,$row['z_pressure']);
+           $dataset3b[] = array($row['ddate']*1000,$row['z_wind_speed'],$row['z_wind_degrees']);
+           $dataset3c[] = array($row['ddate']*1000,$row['z_precip_today']);
+           $dataset3d[] = array($row['ddate']*1000,$row['z_UV']);
+       }
+       $final_pres_a = json_encode(($dataset3a),JSON_NUMERIC_CHECK);
+       $final_pres_b = json_encode(($dataset3b),JSON_NUMERIC_CHECK);
+       $final_precip = json_encode(($dataset3c),JSON_NUMERIC_CHECK);
+       $final_uv     = json_encode(($dataset3d),JSON_NUMERIC_CHECK);
+    };
     //now craft the html
-   echo '<script type="text/javascript">
-     $(function () {';
+   echo '
+   <script type="text/javascript">
+    $(function () {
+     
+     //add all the crap needed
+     
+     var results = [';
+     if ($tc_ctemp == '1')  {echo '{"label": "Current Temp", "data": '. $final_temp_a .'},';}
+     if ($tc_ttemp == '1')  {echo '{"label": "Target Temp",  "data": '. $final_temp_b .'},';}
+     if ($tc_otemp == '1')  {echo '{"label": "Outside Temp", "data": '. $final_temp_c .'},';}
+     if ($tc_aaway == '1')  {echo '{"label": "Auto Away",    "data": '. $final_temp_d .', "yaxis": 2, "lines":{fill:.25, lineWidth:1}},';}
+     if ($tc_fon == '1')    {echo '{"label": "Fan On",       "data": '. $final_temp_e .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_acon == '1')   {echo '{"label": "AC On",        "data": '. $final_temp_f .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_leaf == '1')   {echo '{"label": "Leaf",         "data": '. $final_temp_g .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_heaton == '1') {echo '{"label": "Heat On",      "data": '. $final_temp_h .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}}';}
+     echo '];
+
+     
+    var i = 0,
+    choiceContainer = $("#overviewLegend");
+
+    $.each(results, function(key, val) {
+        val.color = i;
+        ++i;
+        l = val.label;
+        var li = $("<li />").appendTo(choiceContainer);
+
+       $(\'<input name="\' + l + \'" id="\' + l + \'" type="checkbox" checked="checked" />\').appendTo(li);
+        $(\'<label>\', {
+            text: l, 
+            \'for\': l
+        }).appendTo(li);
+    });
+
+function plotAccordingToChoices() {
+    var data = [];
+
+    choiceContainer.find("input:checked").each(function() {
+        var key = this.name;
+
+        for (var i = 0; i < results.length; i++) {
+            if (results[i].label === key) {
+                data.push(results[i]);
+                return true;
+            }
+        }
+    });
+
+    var toptions = {
+               xaxis:  {
+                      mode: "time",
+                      timeformat: "%m/%d/%y",
+                      timezone: "browser",
+                      minTickSize: [1, "day"],
+                      axisLabelUseCanvas: true,
+                      axisLabelFontSizePixels: 12,
+                      axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
+                      axisLabelPadding: 5
+                },
+                yaxes: [{
+                      min:'.$t_f_min.',
+                      max:'.$t_f_max.',
+                      axisLabel: "' . $tmode_min . '"
+                },
+                {
+                      min:0,
+                      max:1,
+                      show:false,
+                      axisLabel: ""
+                },
+                {
+                      min:0,
+                      max:1,
+                      show:false,
+                      axisLabel: ""
+                }],
+                legend: { 
+                      position: "sw",
+                      labelFormatter: null,
+                      noColumns: 3,
+                      backgroundOpacity: .75,
+                      labelBoxBorderColor: "#000000"
+                },
+                grid: {
+                      hoverable: true, 
+                },
+                tooltip: true,
+                tooltipOpts: {
+                    //content: "%s at %x was %y.1 ' . $tmode_min .'",
+                    content: "%s at %x was %y.1",
+                    xDateFormat: "%m/%d %H:%M",
+                    shifts: {
+                        x: -60,
+                        y: 25
+                    }
+                 }
+          };
+     $.plot($("#temperature"), data, toptions);
+}
+var previousPoint = null;
+
+plotAccordingToChoices();
+choiceContainer.find("input").change(plotAccordingToChoices);
+
+$(".legendColorBox > div").each(function(i){
+    $(this).clone().prependTo(choiceContainer.find("li").eq(i));
+});})';
+
      if ($show_humbat == '1') {echo '
      var battery = ' . $final_misc . ';
      $.plot("#placeholder",[{label: "voltage", data: battery}],
@@ -648,88 +780,9 @@ if (!$db_selected) {
                 },
               colors: ["#2E8ADB"],
           }
-     );
-     ';}
+     )';}
 
-     if ($tc_ctemp == '1')  {echo "     var temp_a = $final_temp_a;\r\n";}
-     if ($tc_ttemp == '1')  {echo "     var temp_b = $final_temp_b;\r\n";}
-     if ($tc_otemp == '1')  {echo "     var temp_c = $final_temp_c;\r\n";}
-     if ($tc_aaway == '1')  {echo "     var temp_d = $final_temp_d;\r\n";}
-     if ($tc_fon == '1')    {echo "     var temp_e = $final_temp_e;\r\n";}
-     if ($tc_acon == '1')   {echo "     var temp_f = $final_temp_f;\r\n";}
-     if ($tc_leaf == '1')   {echo "     var temp_g = $final_temp_g;\r\n";}
-     if ($tc_heaton == '1') {echo "     var temp_h = $final_temp_h;\r\n";}
-
-     echo '     $.plot("#temperature",[';
-     if ($tc_ctemp == '1')  {echo "     {label: 'Current Temp', data: temp_a},\r\n";}
-     if ($tc_ttemp == '1')  {echo "     {label: 'Target Temp', data: temp_b},\r\n";}
-     if ($tc_otemp == '1')  {echo "     {label: 'Outdoor Temp', data: temp_c},\r\n";}
-     if ($tc_aaway == '1')  {echo "     {label: 'Auto Away', data: temp_d, yaxis: 2, lines:{fill:.25, lineWidth:1}},\r\n";}
-     if ($tc_fon == '1')    {echo "     {label: 'Fan on', data: temp_e, yaxis: 3, lines:{fill:.15, lineWidth:1}},\r\n";}
-     if ($tc_acon == '1')   {echo "     {label: 'A/C on', data: temp_f, yaxis: 3, lines:{fill:.15, lineWidth:1}},\r\n";}
-     if ($tc_leaf == '1')   {echo "     {label: 'Leaf', data: temp_g, yaxis: 3, lines:{fill:.30, lineWidth:1}},\r\n";}
-     if ($tc_heaton == '1') {echo "     {label: 'Heat On', data: temp_h, yaxis: 3, lines:{fill:.15, lineWidth:1}},\r\n";}
-     echo '     ],
-          {
-               xaxis:  {
-                      mode: "time",
-                      timeformat: "%m/%d/%y",
-                      timezone: "browser",
-                      minTickSize: [1, "day"],
-                      axisLabelUseCanvas: true,
-                      axisLabelFontSizePixels: 12,
-                      axisLabelFontFamily: "Verdana, Arial, Helvetica, Tahoma, sans-serif",
-                      axisLabelPadding: 5
-                },
-                yaxes: [{
-                      min:'.$t_f_min.',
-                      max:'.$t_f_max.',
-                      axisLabel: "' . $tmode_min . '"
-                },
-                {
-                      min:0,
-                      max:1,
-                      show:false,
-                      axisLabel: ""
-                },
-                {
-                      min:0,
-                      max:1,
-                      show:false,
-                      axisLabel: ""
-                }],
-                legend: { 
-                      position: "sw",
-                      noColumns: 3,
-                      backgroundOpacity: .75,
-                      labelBoxBorderColor: "#000000"
-                },
-                colors: [';
-                if ($tc_ctemp == '1')  {echo '"#2E8ADB"';}
-                if ($tc_ttemp == '1')  {echo ',"#FFA617"';}
-                if ($tc_otemp == '1')  {echo ',"#A3D0F7"';}
-                if ($tc_aaway == '1')  {echo ',"#ED85FF"';}
-                if ($tc_fon == '1')    {echo ',"#CECECE"';}
-                if ($tc_acon == '1')   {echo ',"#2EAFFF"';}
-                if ($tc_leaf == '1')   {echo ',"#2EDB76"';}
-                if ($tc_heaton == '1') {echo ',"#F72556"';}
-                echo '],
-                grid: {
-                      hoverable: true, 
-                },
-                tooltip: true,
-                tooltipOpts: {
-                    //content: "%s at %x was %y.1 ' . $tmode_min .'",
-                    content: "%s at %x was %y.1",
-                    xDateFormat: "%m/%d %H:%M",
-                    shifts: {
-                        x: -60,
-                        y: 25
-                    }
-                 }
-          }
-     );
-});
+   echo '
      </script>
        <script>
         function init(){
@@ -768,14 +821,32 @@ if (!$db_selected) {
              }
              echo '             // Wind';
              if ($s_scale==="kph") {echo '
-             var Wsections = Array(steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
-                                   steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
-             var Wareas = Array(steelseries.Section(75, 100, "rgba(220, 0, 0, 0.55)"));
+             var Wsections = Array(steelseries.Section(0, 7, "rgba(0, 60, 255, 0.35)"), 
+                                   steelseries.Section(7, 15, "rgba(0, 179, 255, 0.35)"),
+                                   steelseries.Section(15, 24, "rgba(0, 255, 229, 0.35)"),
+                                   steelseries.Section(24, 35, "rgba(0, 255, 119, 0.35)"),
+                                   steelseries.Section(35, 46, "rgba(0, 255, 17, 0.35)"),
+                                   steelseries.Section(46, 59, "rgba(255, 251, 0, 0.35)"),
+                                   steelseries.Section(59, 72, "rgba(255, 179, 0, 0.35)"),
+                                   steelseries.Section(72, 87, "rgba(255, 38, 0, 0.35)"),
+                                   steelseries.Section(87, 102, "rgba(255, 25, 25, 0.35)"),
+                                   steelseries.Section(102, 118, "rgba(171, 0, 186, 0.35)"));
+             var Wareas = Array(steelseries.Section(60, 72, "rgba(255, 174, 0, 0.4)"),
+                                steelseries.Section(72, 100, "rgba(220, 0, 0, 0.55)"));
              ';
              } else {echo '
-             var Wsections = Array(steelseries.Section(0, 12, "rgba(0, 220, 0, 0.3)"), 
-                                   steelseries.Section(12, 45, "rgba(220, 220, 0, 0.3)"));
-             var Wareas = Array(steelseries.Section(45, 100, "rgba(220, 0, 0, 0.55)"));
+             var Wsections = Array(steelseries.Section(0, 5, "rgba(0, 60, 255, 0.35)"), 
+                                   steelseries.Section(5, 9, "rgba(0, 179, 255, 0.35)"),
+                                   steelseries.Section(9, 15, "rgba(0, 255, 229, 0.35)"),
+                                   steelseries.Section(15, 22, "rgba(0, 255, 119, 0.35)"),
+                                   steelseries.Section(22, 29, "rgba(0, 255, 17, 0.35)"),
+                                   steelseries.Section(29, 37, "rgba(255, 251, 0, 0.35)"),
+                                   steelseries.Section(37, 45, "rgba(255, 179, 0, 0.35)"),
+                                   steelseries.Section(45, 54, "rgba(255, 38, 0, 0.35)"),
+                                   steelseries.Section(54, 63, "rgba(255, 25, 25, 0.35)"),
+                                   steelseries.Section(63, 74, "rgba(171, 0, 186, 0.35)"));
+             var Wareas = Array(steelseries.Section(37, 45, "rgba(255, 174, 0, 0.4)"),
+                                steelseries.Section(45, 100, "rgba(220, 0, 0, 0.55)"));
              ';
              }
              echo '
@@ -797,7 +868,7 @@ if (!$db_selected) {
              var LC = steelseries.LcdColor.STANDARD;
              var CD = steelseries.ColorDef.BLUE;';
 
-        if ($show_ind==="1") {echo '
+        if ($show_ind == "1") {echo '
              // Create one radial gauge
              var radial1 = new steelseries.Radial(
                     "canvas1", {
