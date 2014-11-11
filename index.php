@@ -276,7 +276,7 @@ if (!$db_selected) {
         $g_w_trend = "steelseries.TrendState.STEADY";
     }
     
-    echo '<div id="wrapper" style="width:1000px;margin:0 auto;">';
+    echo '<div id="wrapper" style="width:1200px;margin:0 auto;">';
 
     if ($show_ind == '1') {echo '      <table border=0>
       <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
@@ -298,14 +298,14 @@ if (!$db_selected) {
 
       echo '<p>
       <div style="width:1300px">TEMPERATURE</div>
-      <div style="display:table-row;width:100%;overflow:hidden;position:relative;"> 
-          <div id="temperature" style="display:table-cell;width:1100px;height:500px;"></div>
-          <div id="miniature" style="display:table-cell;width:200px;right:100px">
-             <ul id="overviewLegend">
-             </ul>
+      <div style="width:1300px; overflow: hidden;display: table;>
+          <div style="display: table-row">
+             <div id="temperature" style="width:1000px;height:500px;display: table-cell;"></div>
+             <div id="miniature" style="width:200px;display: table-cell;">
+                <ul id="overviewLegend"></ul>
+             </div>
           </div>
-      </div>
-      <div id="navigation" style="width:500px;height:60px;"><BR/>
+      <div id="navigation" style="width:600px;height:60px;margin-left:400"><BR/>
       <table width=100%>
          <tr>
             <td><form action="index.php" method="get"><input type="hidden" name="days" value="1"><input type="submit" value="1 day"></form></td>
@@ -322,9 +322,9 @@ if (!$db_selected) {
       if ($show_humbat == '1') {echo '
       <div style="width:1000px;height:10px;">&nbsp;</div>
       <div style="width:500px;float:left;">HUMIDITY</div>
-      <div style="width:500px;float:right;">BATTERY LEVEL</div>
+      <div style="width:700px;float:right;text-align=middle;">BATTERY LEVEL</div>
       <div id="humidity" style="float:left;width:500px;height:250px;"></div>
-      <div id="placeholder" style="float:right;width:500px;height:250px;"></div>
+      <div id="battery" style="float:right;width:500px;height:250px;margin-right:200px;"></div>
       <div style="width:1000px;height:150px;">&nbsp;</div>
       
       ';}
@@ -341,7 +341,7 @@ if (!$db_selected) {
       <div id="uv" style="float:left;width:1000px;height:150px;"></div>';
       }
    echo '
-   <div id="placeholder" style="width:50%;height:300px;"></div>
+   <div id="placeholder" style="width:50%;height:150px;"></div>
    </div>';
 
     // TEMPERATURE
@@ -580,7 +580,7 @@ $(".legendColorBox > div").each(function(i){
 
      if ($show_humbat == '1') {echo '
      var battery = ' . $final_misc . ';
-     $.plot("#placeholder",[{label: "voltage", data: battery}],
+     $.plot("#battery",[{label: "voltage", data: battery}],
           {
                xaxis:  {
                       mode: "time",
