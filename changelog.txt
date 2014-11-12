@@ -1,5 +1,8 @@
 Nest Statistics Live
 
+---------- Version 0.7.2 ----------
++ mod index.php - fix a few typos
+
 ---------- Version 0.7.1 ----------
 + mod index.php - fix width of temperature graph and html label of battery graph
 

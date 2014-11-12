@@ -322,7 +322,7 @@ if (!$db_selected) {
       if ($show_humbat == '1') {echo '
       <div style="width:1000px;height:10px;">&nbsp;</div>
       <div style="width:500px;float:left;">HUMIDITY</div>
-      <div style="width:700px;float:right;text-align=middle;">BATTERY LEVEL</div>
+      <div style="width:700px;float:right;text-align:middle;">BATTERY LEVEL</div>
       <div id="humidity" style="float:left;width:500px;height:250px;"></div>
       <div id="battery" style="float:right;width:500px;height:250px;margin-right:200px;"></div>
       <div style="width:1000px;height:150px;">&nbsp;</div>
@@ -337,7 +337,8 @@ if (!$db_selected) {
       <div id="precip" style="float:left;width:1000px;height:150px;"></div>';
       }
       if ($show_uv == '1') {echo '
-      <div style="width:1000px;height:175px;">UV</div>
+      <div style="width:1000px;height:50px;">&nbsp;</div>
+      <div style="width:1000px;">UV</div>
       <div id="uv" style="float:left;width:1000px;height:150px;"></div>';
       }
    echo '
@@ -453,7 +454,7 @@ if (!$db_selected) {
        $final_hum_c = json_encode(($dataset2c),JSON_NUMERIC_CHECK);
     };
 
-    if ($show_pws == '1' && $show_uv == '1' && $show_precip == '1') {
+    if ($show_pws == '1' || $show_uv == '1' || $show_precip == '1') {
        // PRESSURE WIND DIRECTION UV AND PRECIP
        $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_precip_today, z_UV FROM " . $nest_table . " WHERE ddate > " . $targetdate;
        $result = mysql_query($query);
