@@ -1,5 +1,8 @@
 Nest Statistics Live
 
+---------- Version 0.7.3 ----------
++ mod index.php - finally fixed the DIV issue
+
 ---------- Version 0.7.2 ----------
 + mod index.php - fix a few typos
 

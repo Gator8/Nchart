@@ -305,42 +305,47 @@ if (!$db_selected) {
                 <ul id="overviewLegend"></ul>
              </div>
           </div>
-      <div id="navigation" style="width:600px;height:60px;margin-left:400"><BR/>
-      <table width=100%>
-         <tr>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="1"><input type="submit" value="1 day"></form></td>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="3"><input type="submit" value="3 days"></form></td>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="7"><input type="submit" value="7 days"></form></td>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="14"><input type="submit" value="2 weeks"></form></td>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="30"><input type="submit" value="1 month"></form></td>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="90"><input type="submit" value="3 months"></form></td>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="180"><input type="submit" value="6 months"></form></td>
-            <td><form action="index.php" method="get"><input type="hidden" name="days" value="364"><input type="submit" value="1 year"></form></td>
-         </TR>
-      </table>
+      <div id="navigation" style="width:600px;height:60px;margin-left:400;"><BR/>
+         <table width=100%>
+            <tr>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="1"><input type="submit" value="1 day"></form></td>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="3"><input type="submit" value="3 days"></form></td>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="7"><input type="submit" value="7 days"></form></td>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="14"><input type="submit" value="2 weeks"></form></td>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="30"><input type="submit" value="1 month"></form></td>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="90"><input type="submit" value="3 months"></form></td>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="180"><input type="submit" value="6 months"></form></td>
+               <td><form action="index.php" method="get"><input type="hidden" name="days" value="364"><input type="submit" value="1 year"></form></td>
+            </TR>
+         </table>
+      </div>
       </div>';
       if ($show_humbat == '1') {echo '
-      <div style="width:1000px;height:10px;">&nbsp;</div>
-      <div style="width:500px;float:left;">HUMIDITY</div>
-      <div style="width:700px;float:right;text-align:middle;">BATTERY LEVEL</div>
-      <div id="humidity" style="float:left;width:500px;height:250px;"></div>
-      <div id="battery" style="float:right;width:500px;height:250px;margin-right:200px;"></div>
-      <div style="width:1000px;height:150px;">&nbsp;</div>
-      
+      <div id="wrapper" style="width:1200px;height:275px;margin:0 auto;">
+          <div style="width:500px;float:left;">HUMIDITY</div>
+          <div style="width:700px;float:right;text-align:middle;">BATTERY LEVEL</div>
+          <div id="humidity" style="float:left;width:500px;height:250px;"></div>
+          <div id="battery" style="float:right;width:500px;height:250px;margin-right:200px;"></div>
+      </div>
       ';}
       if ($show_pws == '1') {echo '
-      <div style="width:1000px;height:150px;">PRESSURE & WIND SPEED</div>
-      <div id="pressure" style="float:left;width:1000px;height:150px;"></div>';
-      }
+      <div id="wrapper" style="width:1200px;height:175px;margin:0 auto;">
+          <div style="width:1000px;">PRESSURE & WIND SPEED</div>
+          <div id="pressure" style="float:left;width:1000px;height:150px;"></div>
+      </div>
+      ';}
       if ($show_precip == '1') {echo '
-      <div style="width:1000px;height:175px;">PRECIPITATION</div>
-      <div id="precip" style="float:left;width:1000px;height:150px;"></div>';
-      }
+      <div id="wrapper" style="width:1200px;height:175px;margin:0 auto;">
+          <div style="width:1000px;">PRECIPITATION</div>
+          <div id="precip" style="float:left;width:1000px;height:150px;"></div>
+      </div>
+      ';}
       if ($show_uv == '1') {echo '
-      <div style="width:1000px;height:50px;">&nbsp;</div>
-      <div style="width:1000px;">UV</div>
-      <div id="uv" style="float:left;width:1000px;height:150px;"></div>';
-      }
+      <div id="wrapper" style="width:1200px;height:175px;margin:0 auto;">
+          <div style="width:1000px;">UV</div>
+          <div id="uv" style="float:left;width:1000px;height:150px;"></div>
+      </div>
+      ';}
    echo '
    <div id="placeholder" style="width:50%;height:150px;"></div>
    </div>';
@@ -370,7 +375,15 @@ if (!$db_selected) {
         if ($tc_ctemp == '1') {$dataseta[] = array($row['ddate']*1000,$row['current_temperature']);}
         if ($tc_ttemp == '1') {$datasetb[] = array($row['ddate']*1000,$row['target_temperature'],);}
         if ($tc_otemp == '1') {$datasetc[] = array($row['ddate']*1000,$row['z_temperature']);}
-        if ($tc_aaway == '1')  {$datasetd[] = array($row['ddate']*1000,$row['auto_away']);}
+        if ($tc_aaway == '1') {
+            if ($row['auto_away']=='0') {
+                $a_state = 0;
+            } else {
+                $a_state = .4;
+            }
+            $datasetd[] = array($row['ddate']*1000,$a_state);
+        }
+
         if ($tc_fon == '1')   {
             if ($row['hvac_fan_state']=='False') {
                 $f_state = 0;
@@ -536,7 +549,7 @@ function plotAccordingToChoices() {
                       axisLabel: "' . $tmode_min . '"
                 },
                 {
-                      min:0,
+                      min:-1,
                       max:1,
                       show:false,
                       axisLabel: ""
