@@ -1,5 +1,10 @@
 Nest Statistics Live
 
+---------- Version 0.7.4 ----------
++ mod index.php - visible sections are now collapsable
++ add images/plus.jpg  - image used to open section
++ add images/minus.jpg - image used to close section
+
 ---------- Version 0.7.3 ----------
 + mod index.php - finally fixed the DIV issue
 
@@ -33,7 +38,7 @@ Nest Statistics Live
 + mod index.php - add credit for www.wunderground.com
 + mod NA.txt - add new column
 + mod GB.txt - add new column
-+ add images/wundergroundLogo_4c_horz.jpg - fro wunderground credit
++ add images/wundergroundLogo_4c_horz.jpg - for wunderground credit
 
 
 ---------- Version 0.6.4 ----------

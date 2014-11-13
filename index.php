@@ -278,76 +278,108 @@ if (!$db_selected) {
     
     echo '<div id="wrapper" style="width:1200px;margin:0 auto;">';
 
-    if ($show_ind == '1') {echo '      <table border=0>
-      <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
-      <tr><td colspan=6>
-             <canvas id="canvas7" width="35" height="25"></canvas>AC/Heat Status
-             <canvas id="canvas9" width="35" height="25"></canvas>Fan Status
-             <canvas id="canvas8" width="35" height="25"></canvas>Leaf Status
-             <canvas id="canvas10" width="35" height="25"></canvas>Auto Away
-      </td></tr>
-      <tr>
-         <td><canvas id="canvas1" width="175" height="175"></canvas></td>
-         <td><canvas id="canvas2" width="175" height="175"></canvas></td>
-         <td><canvas id="canvas3" width="175" height="175"></canvas></td>
-         <td><canvas id="canvas4" width="175" height="175"></canvas></td>
-         <td><canvas id="canvas5" width="175" height="175"></canvas></td>
-         <td><canvas id="canvas6" width="175" height="175"></canvas></td>
-      </tr>
-      </table>';}
-
-      echo '<p>
-      <div style="width:1300px">TEMPERATURE</div>
-      <div style="width:1300px; overflow: hidden;display: table;>
-          <div style="display: table-row">
-             <div id="temperature" style="width:1000px;height:500px;display: table-cell;"></div>
-             <div id="miniature" style="width:200px;display: table-cell;">
-                <ul id="overviewLegend"></ul>
-             </div>
-          </div>
-      <div id="navigation" style="width:600px;height:60px;margin-left:400;"><BR/>
-         <table width=100%>
-            <tr>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="1"><input type="submit" value="1 day"></form></td>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="3"><input type="submit" value="3 days"></form></td>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="7"><input type="submit" value="7 days"></form></td>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="14"><input type="submit" value="2 weeks"></form></td>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="30"><input type="submit" value="1 month"></form></td>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="90"><input type="submit" value="3 months"></form></td>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="180"><input type="submit" value="6 months"></form></td>
-               <td><form action="index.php" method="get"><input type="hidden" name="days" value="364"><input type="submit" value="1 year"></form></td>
-            </TR>
+    if ($show_ind == '1') {echo '
+      <div align="right" style="width:900px;height:16px;margin:0 auto;">
+          <input type="image" src="images/minus.jpg" onclick="$(\'#dials\').hide()"/>
+          <input type="image" src="images/plus.jpg" onclick="$(\'#dials\').show()"/>
+      </div>
+      <div id="dials" style="width:1200px;height:275px;margin:0 auto;">
+         <table border=0>
+             <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
+             <tr><td colspan=6>
+                 <canvas id="canvas7" width="35" height="25"></canvas>AC/Heat Status
+                 <canvas id="canvas9" width="35" height="25"></canvas>Fan Status
+                 <canvas id="canvas8" width="35" height="25"></canvas>Leaf Status
+                 <canvas id="canvas10" width="35" height="25"></canvas>Auto Away
+             </td></tr>
+             <tr>
+                <td><canvas id="canvas1" width="175" height="175"></canvas></td>
+                <td><canvas id="canvas2" width="175" height="175"></canvas></td>
+                <td><canvas id="canvas3" width="175" height="175"></canvas></td>
+                <td><canvas id="canvas4" width="175" height="175"></canvas></td>
+                <td><canvas id="canvas5" width="175" height="175"></canvas></td>
+                <td><canvas id="canvas6" width="175" height="175"></canvas></td>
+             </tr>
          </table>
       </div>
-      </div>';
+      <div id="placeholder" style="width:50%;height:16px;"></div>';}
+
+      echo '
+      <div align="right" style="width:900px;height:16px;margin:0 auto;"></div>
+      <div id="main" style="width:1300px;">
+         <div style="width:1300px">TEMPERATURE</div>
+         <div style="width:1300px; overflow: hidden;display: table;>
+             <div style="display: table-row">
+                <div id="temperature" style="width:1000px;height:500px;display: table-cell;"></div>
+                <div id="miniature" style="width:200px;display: table-cell;">
+                   <ul id="overviewLegend"></ul>
+                </div>
+             </div>
+         <div id="navigation" style="width:600px;height:60px;margin-left:400;"><BR/>
+            <table width=100%>
+               <tr>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="1"><input type="submit" value="1 day"></form></td>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="3"><input type="submit" value="3 days"></form></td>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="7"><input type="submit" value="7 days"></form></td>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="14"><input type="submit" value="2 weeks"></form></td>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="30"><input type="submit" value="1 month"></form></td>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="90"><input type="submit" value="3 months"></form></td>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="180"><input type="submit" value="6 months"></form></td>
+                  <td><form action="index.php" method="get"><input type="hidden" name="days" value="364"><input type="submit" value="1 year"></form></td>
+               </TR>
+            </table>
+         </div>
+      </div>
+      <div id="placeholder" style="width:50%;height:16px;"></div>
+</div>';
       if ($show_humbat == '1') {echo '
-      <div id="wrapper" style="width:1200px;height:275px;margin:0 auto;">
+      <div align="right" style="width:900px;height:16px;margin:0 auto;">
+          <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper1\').hide()"/>
+          <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper1\').show()"/>
+      </div>
+      <div id="wrapper1" style="width:1200px;height:275px;margin:0 auto;">
           <div style="width:500px;float:left;">HUMIDITY</div>
           <div style="width:700px;float:right;text-align:middle;">BATTERY LEVEL</div>
           <div id="humidity" style="float:left;width:500px;height:250px;"></div>
           <div id="battery" style="float:right;width:500px;height:250px;margin-right:200px;"></div>
       </div>
+      <div id="placeholder" style="width:50%;height:16px;"></div>
       ';}
       if ($show_pws == '1') {echo '
-      <div id="wrapper" style="width:1200px;height:175px;margin:0 auto;">
+      <div align="right" style="width:900px;height:16px;margin:0 auto;">
+          <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper2\').hide()"/>
+          <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper2\').show()"/>
+      </div>
+      <div id="wrapper2" style="width:1200px;height:175px;margin:0 auto;">
           <div style="width:1000px;">PRESSURE & WIND SPEED</div>
           <div id="pressure" style="float:left;width:1000px;height:150px;"></div>
       </div>
+      <div id="placeholder" style="width:50%;height:16px;"></div>
       ';}
       if ($show_precip == '1') {echo '
-      <div id="wrapper" style="width:1200px;height:175px;margin:0 auto;">
+      <div align="right" style="width:900px;height:16px;margin:0 auto;">
+          <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper3\').hide()"/>
+          <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper3\').show()"/>
+      </div>
+      <div id="wrapper3" style="width:1200px;height:175px;margin:0 auto;">
           <div style="width:1000px;">PRECIPITATION</div>
           <div id="precip" style="float:left;width:1000px;height:150px;"></div>
       </div>
+      <div id="placeholder" style="width:50%;height:16px;"></div>
       ';}
       if ($show_uv == '1') {echo '
-      <div id="wrapper" style="width:1200px;height:175px;margin:0 auto;">
+      <div align="right" style="width:900px;height:16px;margin:0 auto;">
+          <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper4\').hide()"/>
+          <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper4\').show()"/>
+      </div>
+      <div id="wrapper4" style="width:1200px;height:175px;margin:0 auto;">
           <div style="width:1000px;">UV</div>
           <div id="uv" style="float:left;width:1000px;height:150px;"></div>
       </div>
+      <div id="placeholder" style="width:50%;height:16px;"></div>
       ';}
    echo '
-   <div id="placeholder" style="width:50%;height:150px;"></div>
+   <div id="placeholder" style="width:50%;height:25px;"></div>
    </div>';
 
     // TEMPERATURE
