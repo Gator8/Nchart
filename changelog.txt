@@ -1,5 +1,9 @@
 Nest Statistics Live
 
+---------- Version 0.7.5 ----------
++ mod index.php - sections can now be rolled up by default
++ mod Nestphp.ini - added section for default rollup view
+
 ---------- Version 0.7.4 ----------
 + mod index.php - visible sections are now collapsable
 + add images/plus.jpg  - image used to open section

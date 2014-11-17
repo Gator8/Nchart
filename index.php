@@ -30,6 +30,12 @@ $tc_heaton=$ini_array["heat_on"];
 $tc_aaway=$ini_array["auto_away"];
 $tc_fon=$ini_array["fan_on"];
 $tc_leaf=$ini_array["leaf_earn"];
+$indc_roll=$ini_array["ind_rollup"];
+$humb_roll=$ini_array["humbat_rollup"];
+$pws_roll=$ini_array["pws_rollup"];
+$prec_roll=$ini_array["precip_rollup"];
+$uv_roll=$ini_array["uv_rollup"];
+
 
 //$i_hc_mode=$ini_array["heat_cool_mode"];
 //$i_f_mode=$ini_array["fan_mode"];
@@ -275,15 +281,21 @@ if (!$db_selected) {
     } else {
         $g_w_trend = "steelseries.TrendState.STEADY";
     }
+
+    if ($indc_roll == '1') {$indc_view = 'display:none;';} else {$indc_view = '';}
+    if ($humb_roll == '1') {$humb_view = 'display:none;';} else {$humb_view = '';}
+    if ($pws_roll == '1')  {$pws_view = 'display:none;';} else  {$pws_view = '';}
+    if ($prec_roll == '1') {$prec_view = 'display:none;';} else {$prec_view = '';}
+    if ($uv_roll == '1')   {$uv_view = 'display:none;';} else   {$uv_view = '';}
+
     
     echo '<div id="wrapper" style="width:1200px;margin:0 auto;">';
-
     if ($show_ind == '1') {echo '
       <div align="right" style="width:900px;height:16px;margin:0 auto;">
           <input type="image" src="images/minus.jpg" onclick="$(\'#dials\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#dials\').show()"/>
       </div>
-      <div id="dials" style="width:1200px;height:275px;margin:0 auto;">
+      <div id="dials" style="width:1200px;height:275px;margin:0 auto;'. $indc_view .'">
          <table border=0>
              <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
              <tr><td colspan=6>
@@ -337,7 +349,7 @@ if (!$db_selected) {
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper1\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper1\').show()"/>
       </div>
-      <div id="wrapper1" style="width:1200px;height:275px;margin:0 auto;">
+      <div id="wrapper1" style="width:1200px;height:275px;margin:0 auto;'. $humb_view .'">">
           <div style="width:500px;float:left;">HUMIDITY</div>
           <div style="width:700px;float:right;text-align:middle;">BATTERY LEVEL</div>
           <div id="humidity" style="float:left;width:500px;height:250px;"></div>
@@ -350,7 +362,7 @@ if (!$db_selected) {
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper2\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper2\').show()"/>
       </div>
-      <div id="wrapper2" style="width:1200px;height:175px;margin:0 auto;">
+      <div id="wrapper2" style="width:1200px;height:175px;margin:0 auto;'. $pws_view .'">">
           <div style="width:1000px;">PRESSURE & WIND SPEED</div>
           <div id="pressure" style="float:left;width:1000px;height:150px;"></div>
       </div>
@@ -361,7 +373,7 @@ if (!$db_selected) {
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper3\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper3\').show()"/>
       </div>
-      <div id="wrapper3" style="width:1200px;height:175px;margin:0 auto;">
+      <div id="wrapper3" style="width:1200px;height:175px;margin:0 auto;'. $prec_view .'">">
           <div style="width:1000px;">PRECIPITATION</div>
           <div id="precip" style="float:left;width:1000px;height:150px;"></div>
       </div>
@@ -372,7 +384,7 @@ if (!$db_selected) {
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper4\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper4\').show()"/>
       </div>
-      <div id="wrapper4" style="width:1200px;height:175px;margin:0 auto;">
+      <div id="wrapper4" style="width:1200px;height:175px;margin:0 auto;'. $uv_view .'">">
           <div style="width:1000px;">UV</div>
           <div id="uv" style="float:left;width:1000px;height:150px;"></div>
       </div>
