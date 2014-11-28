@@ -1,4 +1,5 @@
 <?php
+// Version v0.7.7
 // Parse the ini file
 $ini_array = parse_ini_file("Nestphp.ini");
 
@@ -30,6 +31,7 @@ $tc_heaton=$ini_array["heat_on"];
 $tc_aaway=$ini_array["auto_away"];
 $tc_fon=$ini_array["fan_on"];
 $tc_leaf=$ini_array["leaf_earn"];
+$tc_feels=$ini_array["feels"];
 $indc_roll=$ini_array["ind_rollup"];
 $humb_roll=$ini_array["humbat_rollup"];
 $pws_roll=$ini_array["pws_rollup"];
@@ -138,6 +140,8 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.rangeselection.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.time.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.direction.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.flot.stack.min.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.flot.fillbetween.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.selection.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.js"></script>
@@ -362,7 +366,7 @@ if (!$db_selected) {
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper2\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper2\').show()"/>
       </div>
-      <div id="wrapper2" style="width:1200px;height:175px;margin:0 auto;'. $pws_view .'">">
+      <div id="wrapper2" style="width:1200px;height:175px;margin:0 auto;'. $pws_view .'">
           <div style="width:1000px;">PRESSURE & WIND SPEED</div>
           <div id="pressure" style="float:left;width:1000px;height:150px;"></div>
       </div>
@@ -373,7 +377,7 @@ if (!$db_selected) {
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper3\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper3\').show()"/>
       </div>
-      <div id="wrapper3" style="width:1200px;height:175px;margin:0 auto;'. $prec_view .'">">
+      <div id="wrapper3" style="width:1200px;height:175px;margin:0 auto;'. $prec_view .'">
           <div style="width:1000px;">PRECIPITATION</div>
           <div id="precip" style="float:left;width:1000px;height:150px;"></div>
       </div>
@@ -397,15 +401,16 @@ if (!$db_selected) {
     // TEMPERATURE
     // build query based on INI entries
     $query="SELECT ddate";
-    if ($tc_ctemp == '1') {$query = $query .',current_temperature';}
-    if ($tc_ttemp == '1') {$query = $query .',target_temperature';}
-    if ($tc_otemp == '1') {$query = $query .',z_temperature';}
+    if ($tc_ctemp == '1')  {$query = $query .',current_temperature';}
+    if ($tc_ttemp == '1')  {$query = $query .',target_temperature';}
+    if ($tc_otemp == '1')  {$query = $query .',z_temperature';}
     if ($tc_aaway == '1')  {$query = $query .',auto_away';}
     if ($tc_heaton == '1') {$query = $query .',hvac_heater_state';}
-    if ($tc_acon == '1') {$query = $query .',hvac_ac_state';}
-    if ($tc_fon == '1')   {$query = $query .',hvac_fan_state';}
-    if ($tc_leaf == '1')  {$query = $query .',leaf';}
-    $query = $query . ' FROM ' . $nest_table . ' WHERE ddate > ' . $targetdate;
+    if ($tc_acon == '1')   {$query = $query .',hvac_ac_state';}
+    if ($tc_fon == '1')    {$query = $query .',hvac_fan_state';}
+    if ($tc_leaf == '1')   {$query = $query .',leaf';}
+    if ($tc_feels == '1')  {$query = $query .',z_feelslike';}
+    $query = $query . ' FROM ' . $nest_table . ' WHERE ddate > ' . $targetdate . ' ORDER BY ddate ASC';
     
     //$lresult = write_log("Query: " . $query);
     $result = mysql_query($query);
@@ -419,6 +424,7 @@ if (!$db_selected) {
         if ($tc_ctemp == '1') {$dataseta[] = array($row['ddate']*1000,$row['current_temperature']);}
         if ($tc_ttemp == '1') {$datasetb[] = array($row['ddate']*1000,$row['target_temperature'],);}
         if ($tc_otemp == '1') {$datasetc[] = array($row['ddate']*1000,$row['z_temperature']);}
+        if ($tc_feels == '1') {$dataseti[] = array($row['ddate']*1000,$row['z_feelslike']);}
         if ($tc_aaway == '1') {
             if ($row['auto_away']=='0') {
                 $a_state = 0;
@@ -485,6 +491,7 @@ if (!$db_selected) {
     if ($tc_acon == '1')   {$final_temp_f = json_encode(($datasetf));}
     if ($tc_leaf == '1')   {$final_temp_g = json_encode(($datasetg));}
     if ($tc_heaton == '1') {$final_temp_h = json_encode(($dataseth));}
+    if ($tc_feels == '1')  {$final_temp_i = json_encode(($dataseti),JSON_NUMERIC_CHECK);}
     $bdate = new DateTime();
 
     if ($show_humbat == '1') {
@@ -535,14 +542,16 @@ if (!$db_selected) {
      //add all the crap needed
      
      var results = [';
-     if ($tc_ctemp == '1')  {echo '{"label": "Current Temp", "data": '. $final_temp_a .'},';}
-     if ($tc_ttemp == '1')  {echo '{"label": "Target Temp",  "data": '. $final_temp_b .'},';}
-     if ($tc_otemp == '1')  {echo '{"label": "Outside Temp", "data": '. $final_temp_c .'},';}
-     if ($tc_aaway == '1')  {echo '{"label": "Auto Away",    "data": '. $final_temp_d .', "yaxis": 2, "lines":{fill:.25, lineWidth:1}},';}
-     if ($tc_fon == '1')    {echo '{"label": "Fan On",       "data": '. $final_temp_e .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
-     if ($tc_acon == '1')   {echo '{"label": "AC On",        "data": '. $final_temp_f .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
-     if ($tc_leaf == '1')   {echo '{"label": "Leaf",         "data": '. $final_temp_g .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
-     if ($tc_heaton == '1') {echo '{"label": "Heat On",      "data": '. $final_temp_h .', "yaxis": 3, "lines":{fill:.15, lineWidth:1}}';}
+     if ($tc_ctemp == '1')  {echo '{"label": "Current Temp",  "data": '. $final_temp_a .', "id": "CT", "fillBetween": "CT"},';}
+     if ($tc_ttemp == '1')  {echo '{"label": "Target Temp",   "data": '. $final_temp_b .', "id": "TT", "fillBetween": "TT"},';}
+     if ($tc_feels == '1')  {echo '{"label": "Feelslike",     "data": '. $final_temp_i .', "id": "FL", "fillBetween": ';
+                             if ($tc_otemp == '1')  {echo '"OT"},';} else {echo '"FL"},';}}
+     if ($tc_otemp == '1')  {echo '{"label": "Outside Temp",  "data": '. $final_temp_c .', "id": "OT", "fillBetween": "OT"},';}
+     if ($tc_aaway == '1')  {echo '{"label": "Auto Away",     "data": '. $final_temp_d .', "id": "AA", "yaxis": 2, "lines":{fill:.25, lineWidth:1}},';}
+     if ($tc_fon == '1')    {echo '{"label": "Fan On",        "data": '. $final_temp_e .', "id": "FO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_acon == '1')   {echo '{"label": "AC On",         "data": '. $final_temp_f .', "id": "AO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_leaf == '1')   {echo '{"label": "Leaf",          "data": '. $final_temp_g .', "id": "LA", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_heaton == '1') {echo '{"label": "Heat On",       "data": '. $final_temp_h .', "id": "HO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}}';}
      echo '];
 
      
@@ -610,6 +619,9 @@ function plotAccordingToChoices() {
                       noColumns: 3,
                       backgroundOpacity: .75,
                       labelBoxBorderColor: "#000000"
+                },
+                series:{
+                     lines: { show: true, fill: true }
                 },
                 grid: {
                       hoverable: true, 

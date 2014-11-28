@@ -1,5 +1,12 @@
 Nest Statistics Live
 
+---------- Version 0.7.7 ----------
++ mod index.php - add feelslike to show windchill
++ mod index.php - outside temp now stacked with windchill
++ mod index.php - fixed a few typos
++ mod index.php - main temp graph query now ordered by ddate
++ mod index.php - added version for better troubleshooting
+
 ---------- Version 0.7.6 ----------
 + cpy MODIFY.txt to MODIFY_10222014.txt
 + mod MODIFY.txt - add new column for existing dbs
