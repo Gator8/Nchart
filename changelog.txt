@@ -1,5 +1,13 @@
 Nest Statistics Live
 
+---------- Version 0.7.8 ----------
++ mod index.php - added versioning to output for better troubleshooting
++ mod index.php - revise max barometer reading to 1050
++ mod index.php - temp graph colors customizable
++ mod index.php - base Y-axis temp range off of windchill or outside temp - whichever is lower. Will have to do the same for heat in the summer.
++ mod Nestphp.ini - added section for temp graph colors
++ mod flot/steelseries-min.js - newer version from author
+
 ---------- Version 0.7.7 ----------
 + mod index.php - add feelslike to show windchill
 + mod index.php - outside temp now stacked with windchill

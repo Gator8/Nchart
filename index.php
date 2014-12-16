@@ -32,6 +32,17 @@ $tc_aaway=$ini_array["auto_away"];
 $tc_fon=$ini_array["fan_on"];
 $tc_leaf=$ini_array["leaf_earn"];
 $tc_feels=$ini_array["feels"];
+
+$tc_ctemp_color=$ini_array["current_temp_color"];
+$tc_ttemp_color=$ini_array["target_temp_color"];
+$tc_otemp_color=$ini_array["outdoor_temp_color"];
+$tc_acon_color=$ini_array["ac_on_color"];
+$tc_heaton_color=$ini_array["heat_on_color"];
+$tc_aaway_color=$ini_array["auto_away_color"];
+$tc_fon_color=$ini_array["fan_on_color"];
+$tc_leaf_color=$ini_array["leaf_earn_color"];
+$tc_feels_color=$ini_array["feels_color"];
+
 $indc_roll=$ini_array["ind_rollup"];
 $humb_roll=$ini_array["humbat_rollup"];
 $pws_roll=$ini_array["pws_rollup"];
@@ -58,7 +69,7 @@ if ($t_scale==="c") {
 }
 if ($pe_scale==="mb") {
     $bmode = "millibars";
-    $baro_max=1040;
+    $baro_max=1050;
     $baro_min=970;
 } else {
     $bmode = "inches";
@@ -111,8 +122,9 @@ $lresult = write_log("No. of Days: " . $bdays);
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
  <head>
+    <!--   NChart Version v0.7.8   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Nest Statistics for the last ' . $bdays . ' days!</title>
+    <title>Nest Statistics (v0.7.8) for the last ' . $bdays . ' days!</title>
     <style>
         #miniature {
             float: left; 
@@ -395,8 +407,7 @@ if (!$db_selected) {
       <div id="placeholder" style="width:50%;height:16px;"></div>
       ';}
    echo '
-   <div id="placeholder" style="width:50%;height:25px;"></div>
-   </div>';
+   <div id="placeholder" style="width:50%;height:25px;"></div>';
 
     // TEMPERATURE
     // build query based on INI entries
@@ -415,9 +426,9 @@ if (!$db_selected) {
     //$lresult = write_log("Query: " . $query);
     $result = mysql_query($query);
     $num_rows = mysql_num_rows($result);
-    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip, max(z_wind_speed) as max_wind FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-    //$lresult = write_log("Query: " . $query);
     //$lresult = write_log("Rows Returned: " . $num_rows);
+
+    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip, max(z_wind_speed) as max_wind, min(z_feelslike) as min_wc FROM " . $nest_table . " WHERE ddate > " . $targetdate;
     $result2 = mysql_query($query);
     while($row = mysql_fetch_assoc($result))
     {
@@ -473,7 +484,11 @@ if (!$db_selected) {
 
     while($row = mysql_fetch_assoc($result2))
     {
-        $t_f_min=$row['min_temp']-5;
+        if ($row['min_wc']<$row['min_temp']) {
+            $t_f_min=$row['min_wc']-5;
+        } else{
+            $t_f_min=$row['min_temp']-5;
+        }
         $t_f_max=$row['max_temp']+5;
         $t_w_max=$row['max_wind']+5;
         if ($pn_scale==="metric") {
@@ -538,29 +553,41 @@ if (!$db_selected) {
    echo '
    <script type="text/javascript">
     $(function () {
-     
-     //add all the crap needed
-     
      var results = [';
-     if ($tc_ctemp == '1')  {echo '{"label": "Current Temp",  "data": '. $final_temp_a .', "id": "CT", "fillBetween": "CT"},';}
-     if ($tc_ttemp == '1')  {echo '{"label": "Target Temp",   "data": '. $final_temp_b .', "id": "TT", "fillBetween": "TT"},';}
-     if ($tc_feels == '1')  {echo '{"label": "Feelslike",     "data": '. $final_temp_i .', "id": "FL", "fillBetween": ';
-                             if ($tc_otemp == '1')  {echo '"OT"},';} else {echo '"FL"},';}}
-     if ($tc_otemp == '1')  {echo '{"label": "Outside Temp",  "data": '. $final_temp_c .', "id": "OT", "fillBetween": "OT"},';}
-     if ($tc_aaway == '1')  {echo '{"label": "Auto Away",     "data": '. $final_temp_d .', "id": "AA", "yaxis": 2, "lines":{fill:.25, lineWidth:1}},';}
-     if ($tc_fon == '1')    {echo '{"label": "Fan On",        "data": '. $final_temp_e .', "id": "FO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
-     if ($tc_acon == '1')   {echo '{"label": "AC On",         "data": '. $final_temp_f .', "id": "AO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
-     if ($tc_leaf == '1')   {echo '{"label": "Leaf",          "data": '. $final_temp_g .', "id": "LA", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
-     if ($tc_heaton == '1') {echo '{"label": "Heat On",       "data": '. $final_temp_h .', "id": "HO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}}';}
+     if ($tc_ctemp == '1')  {echo '{"label": "Current Temp",  "data": '. $final_temp_a ;
+         if ($tc_ctemp_color==''){echo ', "color": "#EDC240"';} else {echo ', "color": "' . $tc_ctemp_color . '"';}
+         echo ', "id": "CT", "fillBetween": "CT"},';}
+     if ($tc_ttemp == '1')  {echo '{"label": "Target Temp",   "data": '. $final_temp_b ;
+         if ($tc_ttemp_color==''){echo ', "color": "#AFD8F8"';} else {echo ', "color": "' . $tc_ttemp_color. '"';}
+         echo ', "id": "TT", "fillBetween": "TT"},';}
+     if ($tc_feels == '1')  {echo '{"label": "Feelslike",     "data": '. $final_temp_i ;
+         if ($tc_feels_color==''){echo ', "color": "#CB4B4B"';} else {echo ', "color": "' . $tc_feels_color. '"';}
+         echo ', "id": "FL", "fillBetween": ';
+         if ($tc_otemp == '1')  {echo '"OT"},';} else {echo '"FL"},';}}
+     if ($tc_otemp == '1')  {echo '{"label": "Outside Temp",  "data": '. $final_temp_c ;
+         if ($tc_otemp_color==''){echo ', "color": "#4DA74D"';} else {echo ', "color": "' . $tc_otemp_color. '"';}
+         echo ', "id": "OT", "fillBetween": "OT"},';}
+     if ($tc_aaway == '1')  {echo '{"label": "Auto Away",     "data": '. $final_temp_d ;
+         if ($tc_aaway_color==''){echo ', "color": "#9440ED"';} else {echo ', "color": "' . $tc_aaway_color. '"';}
+         echo ', "id": "AA", "yaxis": 2, "lines":{fill:.25, lineWidth:1}},';}
+     if ($tc_fon == '1')    {echo '{"label": "Fan On",        "data": '. $final_temp_e ;
+         if ($tc_fon_color==''){echo ', "color": "#BD9B33"';} else {echo ', "color": "' . $tc_fon_color. '"';}
+         echo ', "id": "FO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_acon == '1')   {echo '{"label": "AC On",         "data": '. $final_temp_f ;
+         if ($tc_acon_color==''){echo ', "color": "#8CACC6"';} else {echo ', "color": "' . $tc_acon_color. '"';}
+         echo ', "id": "AO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_leaf == '1')   {echo '{"label": "Leaf",          "data": '. $final_temp_g ;
+         if ($tc_leaf_color==''){echo ', "color": "#A23C3C"';} else {echo ', "color": "' . $tc_leaf_color. '"';}
+         echo ', "id": "LA", "yaxis": 3, "lines":{fill:.15, lineWidth:1}},';}
+     if ($tc_heaton == '1') {echo '{"label": "Heat On",       "data": '. $final_temp_h ;
+         if ($tc_heaton_color==''){echo ', "color": "#3D853D"';} else {echo ', "color": "' . $tc_heaton_color. '"';}
+         echo ', "id": "HO", "yaxis": 3, "lines":{fill:.15, lineWidth:1}}';}
      echo '];
 
-     
     var i = 0,
     choiceContainer = $("#overviewLegend");
 
     $.each(results, function(key, val) {
-        val.color = i;
-        ++i;
         l = val.label;
         var li = $("<li />").appendTo(choiceContainer);
 
@@ -876,10 +903,10 @@ $(".legendColorBox > div").each(function(i){
              echo '             // Pressure';
              if ($pe_scale==="mb")  {echo '
              var Pareas = Array(steelseries.Section(970, 980, "rgba(220, 0, 0, 0.55)"),
-                                steelseries.Section(1030, 1040, "rgba(220, 0, 0, 0.55)"));
+                                steelseries.Section(1035, 1050, "rgba(220, 0, 0, 0.55)"));
              var Psections = Array(steelseries.Section(970, 980, "rgba(0, 0, 220, 0.3)"),
-                                   steelseries.Section(980, 1030, "rgba(0, 220, 0, 0.3)"), 
-                                   steelseries.Section(1030, 1040, "rgba(220, 220, 0, 0.3)"));
+                                   steelseries.Section(980, 1035, "rgba(0, 220, 0, 0.3)"), 
+                                   steelseries.Section(1035, 1050, "rgba(220, 220, 0, 0.3)"));
                                    ';
              } else {echo '
              var Pareas = Array(steelseries.Section(28.6, 28.9, "rgba(220, 0, 0, 0.55)"),
