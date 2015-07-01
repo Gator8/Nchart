@@ -1,1 +1,13 @@
-ALTER TABLE `XXXXXX` ADD COLUMN last_software_update_utc_secs BIGINT(20) NULL DEFAULT NULL AFTER is_on_stand;
+ALTER TABLE `XXXXXX` 
+ADD `hvac_smoke_safety_shutoff_active` VARCHAR(5) NULL AFTER `hvac_safety_shutoff_active`,
+ADD `oob_interview_completed` VARCHAR(5) NULL AFTER `ob_persistence`,
+ADD `oob_startup_completed` VARCHAR(5) NULL AFTER `oob_interview_completed`,
+ADD `oob_summary_completed` VARCHAR(5) NULL AFTER `oob_startup_completed`,
+ADD `oob_temp_completed` VARCHAR(5) NULL AFTER `oob_summary_completed`,
+ADD `oob_test_completed` VARCHAR(5) NULL AFTER `oob_temp_completed`,
+ADD `oob_where_completed` VARCHAR(5) NULL AFTER `oob_test_completed`,
+ADD `oob_wifi_completed` VARCHAR(5) NULL AFTER `oob_where_completed`,
+ADD `oob_wires_completed` VARCHAR(5) NULL AFTER `oob_wifi_completed`,
+ADD `pro_id` VARCHAR(20) NULL AFTER `preconditioning_ready`,
+ADD `safety_state` VARCHAR(7) NULL AFTER `rssi`, 
+ADD `safety_state_time` INT NULL AFTER `safety_state`;

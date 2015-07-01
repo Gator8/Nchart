@@ -124,7 +124,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
  <head>
     <!--   NChart Version v0.7.8   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Nest Statistics (v0.7.8) for the last ' . $bdays . ' days!</title>
+    <title>Nest Statistics (v0.7.9) for the last ' . $bdays . ' days!</title>
     <style>
         #miniature {
             float: left; 
@@ -428,7 +428,7 @@ if (!$db_selected) {
     $num_rows = mysql_num_rows($result);
     //$lresult = write_log("Rows Returned: " . $num_rows);
 
-    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip, max(z_wind_speed) as max_wind, min(z_feelslike) as min_wc FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip, max(z_wind_speed) as max_wind, min(z_feelslike) as min_wc, max(z_feelslike) as max_wc FROM " . $nest_table . " WHERE ddate > " . $targetdate;
     $result2 = mysql_query($query);
     while($row = mysql_fetch_assoc($result))
     {
@@ -485,9 +485,14 @@ if (!$db_selected) {
     while($row = mysql_fetch_assoc($result2))
     {
         if ($row['min_wc']<$row['min_temp']) {
-            $t_f_min=$row['min_wc']-5;
+            $t_f_min=$row['min_wc']-2;
         } else{
-            $t_f_min=$row['min_temp']-5;
+            $t_f_min=$row['min_temp']-2;
+        }
+        if ($row['max_wc']>$row['max_temp']) {
+            $t_f_max=$row['max_wc']+2;
+        } else{
+            $t_f_max=$row['max_temp']+2;
         }
         $t_f_max=$row['max_temp']+5;
         $t_w_max=$row['max_wind']+5;

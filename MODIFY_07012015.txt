@@ -1,0 +1,1 @@
+ALTER TABLE `XXXXXX` ADD COLUMN last_software_update_utc_secs BIGINT(20) NULL DEFAULT NULL AFTER is_on_stand;

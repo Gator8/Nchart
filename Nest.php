@@ -191,6 +191,16 @@ $i=0;
         echo "Weather call failed. Using previous values.\n";
      }
 
+     //ignore innaccurate data
+     if (($z_temperature > $lst_row[0]['z_temperature']+5) || ($z_temperature < $lst_row[0]['z_temperature']-5)) {
+        $z_temperature =  $lst_row[0]['z_temperature'];
+        $z_wind_speed =  $lst_row[0]['z_wind_speed'];
+        $z_wind_gust_speed =  $lst_row[0]['z_wind_gust_speed'];
+        $z_dewpoint =  $lst_row[0]['z_dewpoint'];
+        $z_windchill =  $lst_row[0]['z_windchill'];
+        $z_feelslike =  $lst_row[0]['z_feelslike'];
+     }
+
      $tbl_vars = $tbl_vars.",z_temperature,z_relative_humidity,z_wind_dir,z_wind_degrees,z_wind_speed,z_wind_gust_speed,z_pressure,z_pressure_trend,z_dewpoint,z_heat_index,z_windchill,z_feelslike,z_visibility,z_UV,z_precip_today";
      $tbl_vals = $tbl_vals.",'".$z_temperature."','".$z_relative_humidity."','".$z_wind_dir."','".$z_wind_degrees."','".$z_wind_speed."','".$z_wind_gust_speed."','".$z_pressure."','".$z_pressure_trend."','".$z_dewpoint."','".$z_heat_index."','".$z_windchill."','".$z_feelslike."','".$z_visibility."','".$z_UV."','".$z_precip_today."'";
  }

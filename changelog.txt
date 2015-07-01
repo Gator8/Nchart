@@ -1,5 +1,15 @@
 Nest Statistics Live
 
+---------- Version 0.7.9 ----------
++ mod index.php - wind speed now stacked with wind gust
++ mod index.php - min max temp scale adjusted
++ mod Nest.php  - ignore bad external weather data. Use last good reading.
++ cpy MODIFY.txt to MODIFY_07012015.txt
++ mod MODIFY.txt - add new column for existing dbs
+     NOTE: use this file if you already have a database setup.
++ mod NA.txt - add new column
++ mod GB.txt - add new column
+
 ---------- Version 0.7.8 ----------
 + mod index.php - added versioning to output for better troubleshooting
 + mod index.php - revise max barometer reading to 1050
@@ -20,7 +30,7 @@ Nest Statistics Live
 + mod MODIFY.txt - add new column for existing dbs
      NOTE: use this file if you already have a database setup
 + mod NA.txt - add new column
-+ mod GB.txt - add new column 
++ mod GB.txt - add new column
 
 ---------- Version 0.7.5 ----------
 + mod index.php - sections can now be rolled up by default
