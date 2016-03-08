@@ -1,5 +1,10 @@
 Nest Statistics Live
 
+---------- Version 0.8.0a ----------
++ add images/plus.jpg  - add back inadvertant image deletion
++ add images/minus.jpg - add back inadvertant image deletion
++ add images/wundergroundLogo_4c_horz.jpg - add back inadvertant image deletion
+
 ---------- Version 0.8.0 ----------
 + mod Nestphp.ini - settings for getting wether using different methods
 + mod index.php - add wind speed gust and fix formatting 
