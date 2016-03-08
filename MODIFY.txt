@@ -1,13 +1,10 @@
-ALTER TABLE `XXXXXX` 
-ADD `hvac_smoke_safety_shutoff_active` VARCHAR(5) NULL AFTER `hvac_safety_shutoff_active`,
-ADD `oob_interview_completed` VARCHAR(5) NULL AFTER `ob_persistence`,
-ADD `oob_startup_completed` VARCHAR(5) NULL AFTER `oob_interview_completed`,
-ADD `oob_summary_completed` VARCHAR(5) NULL AFTER `oob_startup_completed`,
-ADD `oob_temp_completed` VARCHAR(5) NULL AFTER `oob_summary_completed`,
-ADD `oob_test_completed` VARCHAR(5) NULL AFTER `oob_temp_completed`,
-ADD `oob_where_completed` VARCHAR(5) NULL AFTER `oob_test_completed`,
-ADD `oob_wifi_completed` VARCHAR(5) NULL AFTER `oob_where_completed`,
-ADD `oob_wires_completed` VARCHAR(5) NULL AFTER `oob_wifi_completed`,
-ADD `pro_id` VARCHAR(20) NULL AFTER `preconditioning_ready`,
-ADD `safety_state` VARCHAR(7) NULL AFTER `rssi`, 
-ADD `safety_state_time` INT NULL AFTER `safety_state`;
+ALTER TABLE `XXXXXX`
+ADD `has_hot_water_control` VARCHAR(5) NULL AFTER `has_heat_pump`,
+ADD `has_hot_water_temperature` VARCHAR(5) NULL AFTER `has_hot_water_control`,
+ADD `hot_water_active` VARCHAR(5) NULL AFTER `heatpump_setback_active`,
+ADD `hot_water_away_active` VARCHAR(5) NULL AFTER `hot_water_active`,
+ADD `hot_water_away_enabled` VARCHAR(5) NULL AFTER `hot_water_away_active`,
+ADD `hot_water_boiling_state` VARCHAR(5) NULL AFTER `hot_water_away_enabled`,
+ADD `is_furnace_shutdown` VARCHAR(5) NULL AFTER `hvac_wires`,
+ADD `should_wake_on_approach` VARCHAR(5) NULL AFTER `serial_number`,
+ADD `smoke_shutoff_supported` VARCHAR(5) NULL AFTER `should_wake_on_approach`;

@@ -21,8 +21,18 @@ $db_exist=0;
 
 //Get outside temperature is wunderground key is available
 if (!empty($ini_array['wunderground_key'])) {
-   $json_string = file_get_contents("http://api.wunderground.com/api/".$ini_array['wunderground_key']."/conditions/q/".$ini_array['lat_lon'].".json");
-   $lresult = write_log("Got the weather.");
+   if ($ini_array['wea_meth'] == "1") {
+      $json_string = file_get_contents("http://api.wunderground.com/api/".$ini_array['wunderground_key']."/conditions/q/pws:".$ini_array['location'].".json");
+      //$lresult = write_log($json_string);
+      $lresult = write_log("Got the weather. (loc)");
+   } elseif ($ini_array['wea_meth'] == "2") {
+      $json_string = file_get_contents("http://api.wunderground.com/api/".$ini_array['wunderground_key']."/conditions/q/".$ini_array['lat_lon'].".json");
+      $lresult = write_log("Got the weather. (lat_lon)");
+   } else {
+      $status = "NO VALID WEATHER GATHERING METHOD. TERMINATING.";
+      $lresult = write_log($status);
+      exit ($status);
+   }
 
    $parsed_json = json_decode($json_string);
    $z_temperature = $parsed_json->{'current_observation'}->{'temp_'.$t_scale};
@@ -192,13 +202,17 @@ $i=0;
      }
 
      //ignore innaccurate data
-     if (($z_temperature > $lst_row[0]['z_temperature']+5) || ($z_temperature < $lst_row[0]['z_temperature']-5)) {
+     if ($z_temperature < $lst_row[0]['z_temperature']-100) {
+     //if (($z_temperature > $lst_row[0]['z_temperature']+5) || ($z_temperature < $lst_row[0]['z_temperature']-5)) {
         $z_temperature =  $lst_row[0]['z_temperature'];
+        $z_relative_humidity =  $lst_row[0]['z_relative_humidity'];
         $z_wind_speed =  $lst_row[0]['z_wind_speed'];
+        $z_wind_dir =  $lst_row[0]['z_wind_degrees'];
         $z_wind_gust_speed =  $lst_row[0]['z_wind_gust_speed'];
         $z_dewpoint =  $lst_row[0]['z_dewpoint'];
         $z_windchill =  $lst_row[0]['z_windchill'];
         $z_feelslike =  $lst_row[0]['z_feelslike'];
+        $lresult = write_log("alternate weather");
      }
 
      $tbl_vars = $tbl_vars.",z_temperature,z_relative_humidity,z_wind_dir,z_wind_degrees,z_wind_speed,z_wind_gust_speed,z_pressure,z_pressure_trend,z_dewpoint,z_heat_index,z_windchill,z_feelslike,z_visibility,z_UV,z_precip_today";

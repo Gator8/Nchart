@@ -1,5 +1,5 @@
 <?php
-// Version v0.7.7
+// Version v0.8.0
 // Parse the ini file
 $ini_array = parse_ini_file("Nestphp.ini");
 
@@ -122,9 +122,9 @@ $lresult = write_log("No. of Days: " . $bdays);
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
  <head>
-    <!--   NChart Version v0.7.8   -->
+    <!--   NChart Version v0.8.0   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Nest Statistics (v0.7.9) for the last ' . $bdays . ' days!</title>
+    <title>Nest Statistics (v0.8.0) for the last ' . $bdays . ' days!</title>
     <style>
         #miniature {
             float: left; 
@@ -315,9 +315,9 @@ if (!$db_selected) {
          <table border=0>
              <tr><td colspan=6 align=center>Current Conditions (last updated '. $last_date  .')</td></tr>
              <tr><td colspan=6>
-                 <canvas id="canvas7" width="35" height="25"></canvas>AC/Heat Status
-                 <canvas id="canvas9" width="35" height="25"></canvas>Fan Status
-                 <canvas id="canvas8" width="35" height="25"></canvas>Leaf Status
+                 <canvas id="canvas7"  width="35" height="25"></canvas>AC/Heat Status
+                 <canvas id="canvas9"  width="35" height="25"></canvas>Fan Status
+                 <canvas id="canvas8"  width="35" height="25"></canvas>Leaf Status
                  <canvas id="canvas10" width="35" height="25"></canvas>Auto Away
              </td></tr>
              <tr>
@@ -400,7 +400,7 @@ if (!$db_selected) {
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper4\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper4\').show()"/>
       </div>
-      <div id="wrapper4" style="width:1200px;height:175px;margin:0 auto;'. $uv_view .'">">
+      <div id="wrapper4" style="width:1200px;height:175px;margin:0 auto;'. $uv_view .'">
           <div style="width:1000px;">UV</div>
           <div id="uv" style="float:left;width:1000px;height:150px;"></div>
       </div>
@@ -540,19 +540,21 @@ if (!$db_selected) {
 
     if ($show_pws == '1' || $show_uv == '1' || $show_precip == '1') {
        // PRESSURE WIND DIRECTION UV AND PRECIP
-       $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_precip_today, z_UV FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+       $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_wind_gust_speed, z_precip_today, z_UV FROM " . $nest_table . " WHERE ddate > " . $targetdate;
        $result = mysql_query($query);
        while($row = mysql_fetch_assoc($result))
        {
            $dataset3a[] = array($row['ddate']*1000,$row['z_pressure']);
            $dataset3b[] = array($row['ddate']*1000,$row['z_wind_speed'],$row['z_wind_degrees']);
-           $dataset3c[] = array($row['ddate']*1000,$row['z_precip_today']);
-           $dataset3d[] = array($row['ddate']*1000,$row['z_UV']);
+           $dataset3c[] = array($row['ddate']*1000,$row['z_wind_gust_speed']);
+           $dataset3d[] = array($row['ddate']*1000,$row['z_precip_today']);
+           $dataset3e[] = array($row['ddate']*1000,$row['z_UV']);
        }
        $final_pres_a = json_encode(($dataset3a),JSON_NUMERIC_CHECK);
        $final_pres_b = json_encode(($dataset3b),JSON_NUMERIC_CHECK);
-       $final_precip = json_encode(($dataset3c),JSON_NUMERIC_CHECK);
-       $final_uv     = json_encode(($dataset3d),JSON_NUMERIC_CHECK);
+       $final_pres_c = json_encode(($dataset3c),JSON_NUMERIC_CHECK);
+       $final_precip = json_encode(($dataset3d),JSON_NUMERIC_CHECK);
+       $final_uv     = json_encode(($dataset3e),JSON_NUMERIC_CHECK);
     };
     //now craft the html
    echo '
@@ -797,9 +799,11 @@ $(".legendColorBox > div").each(function(i){
    if ($show_pws == '1') {echo '
      var pressure_a = ' . $final_pres_a . ';
      var pressure_b = ' . $final_pres_b . ';
+     var pressure_c = ' . $final_pres_c . ';
      $.plot("#pressure",[
-     {label: "Pressure", data: pressure_a, yaxis: 2},
-     {label: "Wind Speed", data: pressure_b},
+     {label: "Pressure",   data: pressure_a, yaxis: 2, id: "PR", fillBetween: "PR"},
+     {label: "Wind Gust",  data: pressure_c, id: "WG", fillBetween: "WS"},
+     {label: "Wind Speed", data: pressure_b, id: "WS", fillBetween: "WS"},
      ],
           {
               xaxis:  {
