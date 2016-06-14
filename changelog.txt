@@ -1,5 +1,13 @@
 Nest Statistics Live
 
+---------- Version 0.8.1 ----------
++ mod NA.txt - add new columns
++ mod GB.txt - add new columns
++ mod index.php - new version 
++ cpy MODIFY.txt to MODIFY_06142016.txt
++ mod MODIFY.txt - add new columns for existing dbs
+     NOTE: use this file if you already have a database setup.
+
 ---------- Version 0.8.0a ----------
 + add images/plus.jpg  - add back inadvertant image deletion
 + add images/minus.jpg - add back inadvertant image deletion

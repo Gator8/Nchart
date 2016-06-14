@@ -1,5 +1,5 @@
 <?php
-// Version v0.8.0
+// Version v0.8.1
 // Parse the ini file
 $ini_array = parse_ini_file("Nestphp.ini");
 
@@ -124,7 +124,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
  <head>
     <!--   NChart Version v0.8.0   -->
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Nest Statistics (v0.8.0) for the last ' . $bdays . ' days!</title>
+    <title>Nest Statistics (v0.8.1) for the last ' . $bdays . ' days!</title>
     <style>
         #miniature {
             float: left; 

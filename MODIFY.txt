@@ -1,10 +1,5 @@
 ALTER TABLE `XXXXXX`
-ADD `has_hot_water_control` VARCHAR(5) NULL AFTER `has_heat_pump`,
-ADD `has_hot_water_temperature` VARCHAR(5) NULL AFTER `has_hot_water_control`,
-ADD `hot_water_active` VARCHAR(5) NULL AFTER `heatpump_setback_active`,
-ADD `hot_water_away_active` VARCHAR(5) NULL AFTER `hot_water_active`,
-ADD `hot_water_away_enabled` VARCHAR(5) NULL AFTER `hot_water_away_active`,
-ADD `hot_water_boiling_state` VARCHAR(5) NULL AFTER `hot_water_away_enabled`,
-ADD `is_furnace_shutdown` VARCHAR(5) NULL AFTER `hvac_wires`,
-ADD `should_wake_on_approach` VARCHAR(5) NULL AFTER `serial_number`,
-ADD `smoke_shutoff_supported` VARCHAR(5) NULL AFTER `should_wake_on_approach`;
+ADD `away_temperature_high_adjusted` VARCHAR(5) NULL AFTER `away_temperature_high`,
+ADD `away_temperature_low_adjusted` VARCHAR(5) NULL AFTER `away_temperature_low`,
+ADD `tou_icon` VARCHAR(5) NULL AFTER `time_to_target_training`,
+ADD `demand_charge_icon` VARCHAR(5) NULL AFTER `dehumidifier_type`;
