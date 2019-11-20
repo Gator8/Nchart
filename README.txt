@@ -17,7 +17,7 @@ You will need a few things to get this to work:
         2. a mySQL server
         3. PHP installed
         4. Python installed
-        5. a Wunderground key
+        5. an Openweather API key
         6. Flot charts (http://www.flotcharts.org)
         7. SteelSeries Canvas gauges (http://wiki.sandaysoft.com/a/SteelSeries_Gauges)
 
@@ -63,7 +63,7 @@ Step 5 - Copy steelseries-min.js and tween-min.js to flot directory.
 
 Step 6 - Copy jquery.flot.toolip.js to the flot directory.
 
-Step 7 - Test the package by running the nchart.php script from a browser.
+Step 7 - Test the package by running the index.php script from a browser.
          You should get a 3 paned graphic view. Don't worry right away if you
          don't see any data yet. You'll need a couple of hours worth of data
          to determine if your graph is working. Be patient.

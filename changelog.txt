@@ -1,4 +1,11 @@
 Nest Statistics Live
+---------- Version 0.9.23 ----------
++ mod Nest.php - revamped to use Openweather API
++ mod index.php - changes for db connection
++ mod Nestphp.ini - modified for new weather api
++ mod nest.py - change in Nest user-agent
++ add openweather-negative-logo-RGB.png
+- del wundergroundLogo_4c_horz.jpg
 
 ---------- Version 0.8.1 ----------
 + mod NA.txt - add new columns

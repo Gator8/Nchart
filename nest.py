@@ -60,7 +60,7 @@ class Nest:
 
         req = urllib2.Request("https://home.nest.com/user/login",
                               data,
-                              {"user-agent":"Nest/2.1.3 CFNetwork/548.0.4",
+                              {"user-agent":"Nest/3.0.1.15 (iOS) os=6.0 platform=iPad3,1",
                                "X-nl-protocol-version": "1"})
 
         res = urllib2.urlopen(req).read()
@@ -73,7 +73,7 @@ class Nest:
 
     def get_status(self):
         req = urllib2.Request(self.transport_url + "/v2/mobile/user." + self.userid,
-                              headers={"user-agent":"Nest/2.1.3 CFNetwork/548.0.4",
+                              headers={"user-agent":"Nest/3.0.1.15 (iOS) os=6.0 platform=iPad3,1",
                                        "Authorization":"Basic " + self.access_token,
                                        "X-nl-user-id": self.userid,
                                        "X-nl-protocol-version": "1"})
@@ -137,7 +137,7 @@ class Nest:
         data = '{"target_change_pending":true,"target_temperature":' + '%0.1f' % temp + '}'
         req = urllib2.Request(self.transport_url + "/v2/put/shared." + self.serial,
                               data,
-                              {"user-agent":"Nest/2.1.3 CFNetwork/548.0.4",
+                              {"user-agent":"Nest/3.0.1.15 (iOS) os=6.0 platform=iPad3,1",
                                "Authorization":"Basic " + self.access_token,
                                "X-nl-protocol-version": "1"})
 
@@ -149,7 +149,7 @@ class Nest:
         data = '{"fan_mode":"' + str(state) + '"}'
         req = urllib2.Request(self.transport_url + "/v2/put/device." + self.serial,
                               data,
-                              {"user-agent":"Nest/2.1.3 CFNetwork/548.0.4",
+                              {"user-agent":"Nest/3.0.1.15 (iOS) os=6.0 platform=iPad3,1",
                                "Authorization":"Basic " + self.access_token,
                                "X-nl-protocol-version": "1"})
 

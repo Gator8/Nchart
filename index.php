@@ -1,7 +1,9 @@
 <?php
 // Version v0.8.1
 // Parse the ini file
-$ini_array = parse_ini_file("Nestphp.ini");
+$ini_array = parse_ini_file("../Nestphp.ini");
+// away
+//$ini_array = parse_ini_file("Nestphp.ini");
 
 $db_name=$ini_array["db_name"];
 $db_server=$ini_array["db_server"];
@@ -48,11 +50,6 @@ $humb_roll=$ini_array["humbat_rollup"];
 $pws_roll=$ini_array["pws_rollup"];
 $prec_roll=$ini_array["precip_rollup"];
 $uv_roll=$ini_array["uv_rollup"];
-
-
-//$i_hc_mode=$ini_array["heat_cool_mode"];
-//$i_f_mode=$ini_array["fan_mode"];
-//$i_leaf=$ini_array["leaf"];
 // --------------------------------
 
 define("DEFAULT_LOG","load.log");
@@ -122,9 +119,9 @@ $lresult = write_log("No. of Days: " . $bdays);
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
  <head>
-    <!--   NChart Version v0.8.0   -->
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Nest Statistics (v0.8.1) for the last ' . $bdays . ' days!</title>
+    <!--   NChart Version v0.9.23   -->
+    <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> -->
+    <title>Nest Statistics (v0.9.23) for the last ' . $bdays . ' days!</title>
     <style>
         #miniature {
             float: left; 
@@ -156,6 +153,7 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.fillbetween.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.selection.js"></script>
+    <script language="javascript" type="text/javascript" src="flot/jquery.flot.navigate.js"></script>
     <script language="javascript" type="text/javascript" src="flot/jquery.flot.tooltip.js"></script>
     <script language="javascript" type="text/javascript" src="flot/tween-min.js"></script>
     <script language="javascript" type="text/javascript" src="flot/steelseries-min.js"></script>
@@ -163,17 +161,17 @@ echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/ht
    <body onload="init()">';
 
    // Current Nest and Weather Conditions
-$link = mysql_connect($db_server, $db_user, $db_pass);
+   $link = mysqli_connect($db_server, $db_user, $db_pass, $db_name);
 if (!$link) {
-    die('Could not connect: ' . mysql_error());
+    die('Could not connect: ' . mysqli_connect_error());
 }
 
-$db_selected = mysql_select_db($db_name, $link);
-if (!$db_selected) {
-    die ('Can\'t use foo : ' . mysql_error());
-}
+//$db_selected = mysqli_select_db($db_name, $link);
+//if (!$db_selected) {
+//    die ('Can\'t use foo : ' . mysql_error());
+//}
 
-// subtract 30 days from current date and convert to seconds
+    // subtract 30 days from current date and convert to seconds
     $adate = new DateTime();
     $bdays = "P" . $bdays . "D";
     $d_interval = new DateInterval( "$bdays" );
@@ -183,8 +181,8 @@ if (!$db_selected) {
 
     //GET LAST RECORD
     $query = "SELECT * FROM " . $nest_table . " ORDER BY ddate DESC LIMIT 1";
-    $result = mysql_query($query);
-    while($row = mysql_fetch_assoc($result))
+    $result = mysqli_query($link,$query);
+    while($row = mysqli_fetch_assoc($result))
     {
         $last_temp_i = $row['current_temperature'];
         $last_temp_o = $row['z_temperature'];
@@ -207,8 +205,8 @@ if (!$db_selected) {
     }
     //GET SECOND LAST RECORD
     $query = "SELECT * FROM " . $nest_table . " ORDER BY ddate DESC LIMIT 1,1";
-    $result = mysql_query($query);
-    while($row = mysql_fetch_assoc($result))
+    $result = mysqli_query($link,$query);
+    while($row = mysqli_fetch_assoc($result))
     {
         $second_last_temp_o = $row['z_temperature'];
         $second_last_hum_o = $row['z_relative_humidity'];
@@ -304,6 +302,14 @@ if (!$db_selected) {
     if ($prec_roll == '1') {$prec_view = 'display:none;';} else {$prec_view = '';}
     if ($uv_roll == '1')   {$uv_view = 'display:none;';} else   {$uv_view = '';}
 
+    //GET FILTER RECORD
+    $query = "SELECT filter_changed_set_date,filter_changed_date FROM " . $nest_table . " ORDER BY ddate DESC LIMIT 1";
+    $result = mysqli_query($link,$query);
+    while($row = mysqli_fetch_assoc($result))
+    {
+        $next_filter = date("Y-m-d",$row['filter_changed_set_date']);
+        $last_filter = date("Y-m-d",$row['filter_changed_date']);
+    }
     
     echo '<div id="wrapper" style="width:1200px;margin:0 auto;">';
     if ($show_ind == '1') {echo '
@@ -356,16 +362,137 @@ if (!$db_selected) {
                   <td><form action="index.php" method="get"><input type="hidden" name="days" value="364"><input type="submit" value="1 year"></form></td>
                </TR>
             </table>
+         </div>';
+
+    // TEMPERATURE
+    // build query based on INI entries
+    $query="SELECT ddate";
+    if ($tc_ctemp == '1')  {$query = $query .',current_temperature';}
+    if ($tc_ttemp == '1')  {$query = $query .',target_temperature';}
+    if ($tc_otemp == '1')  {$query = $query .',z_temperature';}
+    if ($tc_aaway == '1')  {$query = $query .',auto_away';}
+    if ($tc_heaton == '1') {$query = $query .',hvac_heater_state';}
+    if ($tc_acon == '1')   {$query = $query .',hvac_ac_state';}
+    if ($tc_fon == '1')    {$query = $query .',hvac_fan_state';}
+    if ($tc_leaf == '1')   {$query = $query .',leaf';}
+    if ($tc_feels == '1')  {$query = $query .',z_feelslike';}
+    $query = $query . ' FROM ' . $nest_table . ' WHERE ddate > ' . $targetdate . ' ORDER BY ddate ASC';
+    
+    //$lresult = write_log("Query: " . $query);
+    $result = mysqli_query($link,$query);
+    $num_rows = mysqli_num_rows($result);
+    $lresult = write_log("Rows Returned: " . $num_rows);
+    
+    // select max and min values to build graph
+    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip, max(z_wind_speed) as max_wind, min(z_feelslike) as min_wc, max(z_feelslike) as max_wc FROM " . $nest_table . " WHERE ddate > " . $targetdate;
+    $result2 = mysqli_query($link,$query);
+    
+    //count when heater/ac is on
+    $aheat_time=0;
+    $acon_time=0;
+    $aaway_time=0;
+    $afan_time=0;
+        
+    while($row = mysqli_fetch_assoc($result))
+    {
+        if ($tc_ctemp == '1') {$dataseta[] = array($row['ddate']*1000,$row['current_temperature']);}
+        if ($tc_ttemp == '1') {$datasetb[] = array($row['ddate']*1000,$row['target_temperature'],);}
+        if ($tc_otemp == '1') {$datasetc[] = array($row['ddate']*1000,$row['z_temperature']);}
+        if ($tc_feels == '1') {$dataseti[] = array($row['ddate']*1000,$row['z_feelslike']);}
+        if ($tc_aaway == '1') {
+            if ($row['auto_away']=='0') {
+                $a_state = 0;
+            } else {
+                $a_state = .4;
+                $aaway_time++;
+            }
+            $datasetd[] = array($row['ddate']*1000,$a_state);
+        }
+
+        if ($tc_fon == '1')   {
+            if ($row['hvac_fan_state']=='False') {
+                $f_state = 0;
+            } else {
+                $f_state = .25;
+                $afan_time++;
+            }
+            $datasete[] = array($row['ddate']*1000,$f_state);
+        }
+
+        if ($tc_acon == '1') {
+            if ($row['hvac_ac_state']=='False') {
+                $c_state = 0;
+            } else {
+                $c_state = .25;
+                $acon_time++;
+            }
+            $datasetf[] = array($row['ddate']*1000,$c_state);
+        }
+
+        if ($tc_leaf == '1')  {
+            if ($row['leaf']=='False') {
+                $l_state = 0;
+            } else {
+                $l_state = .25;
+            }
+            $datasetg[] = array($row['ddate']*1000,$l_state);
+        }
+
+        if ($tc_heaton == '1') {
+            if ($row['hvac_heater_state']=='False') {
+                $h_state = 0;
+            } else {
+                $h_state = .25;
+                $aheat_time++;
+            }
+            $dataseth[] = array($row['ddate']*1000,$h_state);
+        }
+    }
+
+    while($row = mysqli_fetch_assoc($result2))
+    {
+        if ($row['min_wc']<$row['min_temp']) {
+            $t_f_min=$row['min_wc']-2;
+        } else{
+            $t_f_min=$row['min_temp']-2;
+        }
+        if ($row['max_wc']>$row['max_temp']) {
+            $t_f_max=$row['max_wc']+2;
+        } else{
+            $t_f_max=$row['max_temp']+2;
+        }
+        $t_w_max=$row['max_wind']+5;
+        if ($pn_scale==="metric") {
+                $r_f_max=$row['max_precip']+5;
+            } else {
+                $r_f_max=$row['max_precip']+1;
+            }
+        
+    }
+
+    $aaway_time = round($aaway_time *10/60,2);
+    $aheat_time = round($aheat_time*10/60,2);
+    $acon_time  = round($acon_time *10/60,2);
+    $afan_time  = round($afan_time*10/60,2);
+         
+         echo '
+         <div style="width:600px;height:60px;margin-left:400;">
+            <table width=100%>
+                <TR><TH colspan=4>Range Summary</TH></TR>
+                <TR><TD>Away Time:</TD><TD align=left>' . $aaway_time . ' hrs.</TD><TD>Fan Time:</TD><TD align=left>' . $afan_time . ' hrs.</TD></TR>
+                <TR><TD>Cooling Time:</TD><TD align=left>' . $acon_time . ' hrs.</TD><TD>Heating Time:</TD><TD align=left>' . $aheat_time . ' hrs.</TD></TR>
+            </table>
          </div>
       </div>
       <div id="placeholder" style="width:50%;height:16px;"></div>
 </div>';
+
       if ($show_humbat == '1') {echo '
       <div align="right" style="width:900px;height:16px;margin:0 auto;">
           <input type="image" src="images/minus.jpg" onclick="$(\'#wrapper1\').hide()"/>
           <input type="image" src="images/plus.jpg" onclick="$(\'#wrapper1\').show()"/>
       </div>
-      <div id="wrapper1" style="width:1200px;height:275px;margin:0 auto;'. $humb_view .'">">
+      <div id="wrapper1" style="width:1200px;height:275px;margin:0 auto;'. $humb_view .'">
           <div style="width:500px;float:left;">HUMIDITY</div>
           <div style="width:700px;float:right;text-align:middle;">BATTERY LEVEL</div>
           <div id="humidity" style="float:left;width:500px;height:250px;"></div>
@@ -409,100 +536,7 @@ if (!$db_selected) {
    echo '
    <div id="placeholder" style="width:50%;height:25px;"></div>';
 
-    // TEMPERATURE
-    // build query based on INI entries
-    $query="SELECT ddate";
-    if ($tc_ctemp == '1')  {$query = $query .',current_temperature';}
-    if ($tc_ttemp == '1')  {$query = $query .',target_temperature';}
-    if ($tc_otemp == '1')  {$query = $query .',z_temperature';}
-    if ($tc_aaway == '1')  {$query = $query .',auto_away';}
-    if ($tc_heaton == '1') {$query = $query .',hvac_heater_state';}
-    if ($tc_acon == '1')   {$query = $query .',hvac_ac_state';}
-    if ($tc_fon == '1')    {$query = $query .',hvac_fan_state';}
-    if ($tc_leaf == '1')   {$query = $query .',leaf';}
-    if ($tc_feels == '1')  {$query = $query .',z_feelslike';}
-    $query = $query . ' FROM ' . $nest_table . ' WHERE ddate > ' . $targetdate . ' ORDER BY ddate ASC';
     
-    //$lresult = write_log("Query: " . $query);
-    $result = mysql_query($query);
-    $num_rows = mysql_num_rows($result);
-    //$lresult = write_log("Rows Returned: " . $num_rows);
-
-    $query = "SELECT max(current_temperature) as max_temp, min(z_temperature) as min_temp, max(z_precip_today) as max_precip, max(z_wind_speed) as max_wind, min(z_feelslike) as min_wc, max(z_feelslike) as max_wc FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-    $result2 = mysql_query($query);
-    while($row = mysql_fetch_assoc($result))
-    {
-        if ($tc_ctemp == '1') {$dataseta[] = array($row['ddate']*1000,$row['current_temperature']);}
-        if ($tc_ttemp == '1') {$datasetb[] = array($row['ddate']*1000,$row['target_temperature'],);}
-        if ($tc_otemp == '1') {$datasetc[] = array($row['ddate']*1000,$row['z_temperature']);}
-        if ($tc_feels == '1') {$dataseti[] = array($row['ddate']*1000,$row['z_feelslike']);}
-        if ($tc_aaway == '1') {
-            if ($row['auto_away']=='0') {
-                $a_state = 0;
-            } else {
-                $a_state = .4;
-            }
-            $datasetd[] = array($row['ddate']*1000,$a_state);
-        }
-
-        if ($tc_fon == '1')   {
-            if ($row['hvac_fan_state']=='False') {
-                $f_state = 0;
-            } else {
-                $f_state = .25;
-            }
-            $datasete[] = array($row['ddate']*1000,$f_state);
-        }
-
-        if ($tc_acon == '1') {
-            if ($row['hvac_ac_state']=='False') {
-                $c_state = 0;
-            } else {
-                $c_state = .25;
-            }
-            $datasetf[] = array($row['ddate']*1000,$c_state);
-        }
-
-        if ($tc_leaf == '1')  {
-            if ($row['leaf']=='False') {
-                $l_state = 0;
-            } else {
-                $l_state = .25;
-            }
-            $datasetg[] = array($row['ddate']*1000,$l_state);
-        }
-
-        if ($tc_heaton == '1') {
-            if ($row['hvac_heater_state']=='False') {
-                $h_state = 0;
-            } else {
-                $h_state = .25;
-            }
-            $dataseth[] = array($row['ddate']*1000,$h_state);
-        }
-    }
-
-    while($row = mysql_fetch_assoc($result2))
-    {
-        if ($row['min_wc']<$row['min_temp']) {
-            $t_f_min=$row['min_wc']-2;
-        } else{
-            $t_f_min=$row['min_temp']-2;
-        }
-        if ($row['max_wc']>$row['max_temp']) {
-            $t_f_max=$row['max_wc']+2;
-        } else{
-            $t_f_max=$row['max_temp']+2;
-        }
-        $t_f_max=$row['max_temp']+5;
-        $t_w_max=$row['max_wind']+5;
-        if ($pn_scale==="metric") {
-                $r_f_max=$row['max_precip']+5;
-            } else {
-                $r_f_max=$row['max_precip']+1;
-            }
-        
-    }
     if ($tc_ctemp == '1')  {$final_temp_a = json_encode(($dataseta),JSON_NUMERIC_CHECK);}
     if ($tc_ttemp == '1')  {$final_temp_b = json_encode(($datasetb),JSON_NUMERIC_CHECK);}
     if ($tc_otemp == '1')  {$final_temp_c = json_encode(($datasetc),JSON_NUMERIC_CHECK);}
@@ -517,8 +551,8 @@ if (!$db_selected) {
     if ($show_humbat == '1') {
        // BATTERY_LEVEL
        $query = "SELECT ddate, battery_level FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-       $result = mysql_query($query);
-       while($row = mysql_fetch_assoc($result))
+       $result = mysqli_query($link,$query);
+       while($row = mysqli_fetch_assoc($result))
        {
            $dataset1[] = array($row['ddate']*1000,$row['battery_level']);
        }
@@ -526,8 +560,8 @@ if (!$db_selected) {
 
        // HUMIDITY
        $query = "SELECT ddate, current_humidity, target_humidity, z_relative_humidity FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-       $result = mysql_query($query);
-       while($row = mysql_fetch_assoc($result))
+       $result = mysqli_query($link,$query);
+       while($row = mysqli_fetch_assoc($result))
        {
            $dataset2a[] = array($row['ddate']*1000,$row['current_humidity']);
            $dataset2b[] = array($row['ddate']*1000,$row['target_humidity']);
@@ -541,8 +575,8 @@ if (!$db_selected) {
     if ($show_pws == '1' || $show_uv == '1' || $show_precip == '1') {
        // PRESSURE WIND DIRECTION UV AND PRECIP
        $query = "SELECT ddate, z_pressure, z_wind_degrees, z_wind_speed, z_wind_gust_speed, z_precip_today, z_UV FROM " . $nest_table . " WHERE ddate > " . $targetdate;
-       $result = mysql_query($query);
-       while($row = mysql_fetch_assoc($result))
+       $result = mysqli_query($link,$query);
+       while($row = mysqli_fetch_assoc($result))
        {
            $dataset3a[] = array($row['ddate']*1000,$row['z_pressure']);
            $dataset3b[] = array($row['ddate']*1000,$row['z_wind_speed'],$row['z_wind_degrees']);
@@ -772,7 +806,7 @@ $(".legendColorBox > div").each(function(i){
                 },
                 yaxis:  {
                       min:0,
-                      max:9
+                      max:10
                 },
                 grid: {
                       hoverable: true, 
@@ -786,13 +820,16 @@ $(".legendColorBox > div").each(function(i){
                 },
                 tooltip:true,
                 tooltipOpts: {
-                    content: "%s at %x was %y V",
+                    content: "%s at %x was %y",
                     xDateFormat: "%m/%d %H:%M",
                     shifts: {
                         x: -30,
                         y: -40
                     }
-                }
+                },
+                legend: { 
+                      position: "sw"
+                },
           }
      );';
      }
@@ -804,6 +841,7 @@ $(".legendColorBox > div").each(function(i){
      {label: "Pressure",   data: pressure_a, yaxis: 2, id: "PR", fillBetween: "PR"},
      {label: "Wind Gust",  data: pressure_c, id: "WG", fillBetween: "WS"},
      {label: "Wind Speed", data: pressure_b, id: "WS", fillBetween: "WS"},
+
      ],
           {
               xaxis:  {
@@ -898,7 +936,7 @@ $(".legendColorBox > div").each(function(i){
              var Tsections = Array(steelseries.Section(-30, 0, "rgba(0, 0, 220, 0.3)"),
                                    steelseries.Section(0, 20, "rgba(0, 220, 0, 0.3)"), 
                                    steelseries.Section(20, 75, "rgba(220, 220, 0, 0.3)"));
-             var Tareas = Array(steelseries.Section(35, 45, "rgba(220, 0, 0, 0.55)"),
+             var Tareas = Array(steelseries.Section(30, 45, "rgba(220, 0, 0, 0.55)"),
                                 steelseries.Section(-30, -20, "rgba(108, 92, 252, 0.55)"));
                                 ';
              } else {echo '
@@ -1190,7 +1228,7 @@ $(".legendColorBox > div").each(function(i){
 echo '
         }
   </script>
-  <h6><center>Some data courtesy of <a href="http://www.wunderground.com" target="_blank"><img src="images/wundergroundLogo_4c_horz.jpg" width="90"></a></center></h6>
+  <h6><center>Some data courtesy of <a href="https://openweathermap.org/" target="_blank"><img src="images/openweather-negative-logo-RGB.png" width="90"></a></center></h6>
    </body>
 </html>';
 
