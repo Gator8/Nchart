@@ -119,9 +119,9 @@ $lresult = write_log("No. of Days: " . $bdays);
 
 echo '<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
  <head>
-    <!--   NChart Version v0.9.23   -->
+    <!--   NChart Version v0.9.25   -->
     <!-- <meta http-equiv="Content-Type" content="text/html; charset=utf-8"> -->
-    <title>Nest Statistics (v0.9.23) for the last ' . $bdays . ' days!</title>
+    <title>Nest Statistics (v0.9.25) for the last ' . $bdays . ' days!</title>
     <style>
         #miniature {
             float: left; 

@@ -17,6 +17,7 @@ $pn_scale=$ini_array["pn_scale"];
 $pe_scale=$ini_array["pe_scale"];
 $nest_region=$ini_array["N_region"];
 $nest_name=$ini_array["N_name"];
+$nest_serial=$ini_array["N_serial"];
 
 $db_exist=0;
 
@@ -124,7 +125,7 @@ if (!empty($ini_array['openweather_key'])) {
    $lresult = write_log("z_precip_today:".$z_precip_today);
 
 // fix path to python executable as well as path to py file
-$command = 'python nest.py --user ' .$ini_array["N_user"]. ' --password ' .$ini_array["N_pass"]. ' show';
+$command = 'python nest.py --user ' .$ini_array["N_user"]. ' --password ' .$ini_array["N_pass"]. ' --serial ' .$ini_array["N_serial"]. ' show';
 //$lresult = write_log("PYTHON Command: " . $command);
 $temp = exec($command, $output);
 

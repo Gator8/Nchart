@@ -27,7 +27,7 @@ Data Gathering
 
 Step 1 - Test the nest.py script by running it as follows:
 
-            python nest.py --user [USER] --password [PASS] show
+            python nest.py --user [USER] --password [PASS] --serial [SERIAL_NUMBER] show
 
          where [USER] is your Nest account name and [PASS] is your Nest
          account password. The result of the command should be a screen

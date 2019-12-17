@@ -84,7 +84,6 @@ class Nest:
 
         res = self.loads(res)
 
-		# you may need to change this value depending on which device is your thermostat
         self.structure_id = res["structure"].keys()[0]
 
         if (self.serial is None):

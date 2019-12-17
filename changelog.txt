@@ -1,4 +1,10 @@
 Nest Statistics Live
+---------- Version 0.9.25 ----------
++ mod nest.py - remove comment
++ mod Nestphp.ini - add serial number parameter 
++ mod Nest.php - use serial number parameter
++ mod index.php - change version number
+
 ---------- Version 0.9.24 ----------
 + mod nest.py - refined user agent
 
