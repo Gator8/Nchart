@@ -1,4 +1,7 @@
 Nest Statistics Live
+---------- Version 0.9.24 ----------
++ mod nest.py - refined user agent
+
 ---------- Version 0.9.23 ----------
 + mod Nest.php - revamped to use Openweather API
 + mod index.php - changes for db connection
